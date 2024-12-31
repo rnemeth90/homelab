@@ -1,0 +1,12 @@
+- name: Join Kubernetes worker nodes
+  hosts: workers
+  become: yes
+  tasks:
+    - name: Fetch join command from master
+      fetch:
+        src: /tmp/kubeadm_join_command.sh
+        dest: /tmp/kubeadm_join_command.sh
+        flat: yes
+
+    - name: Run kubeadm join
+      shell: bash /tmp/kubeadm_join_command.sh

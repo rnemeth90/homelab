@@ -1,0 +1,20 @@
+- name: Configure kubelet to use containerd
+  hosts: kubernetes
+  become: yes
+  tasks:
+    - name: Ensure kubelet service directory exists
+      file:
+        path: /etc/systemd/system/kubelet.service.d
+        state: directory
+
+    - name: Configure kubelet to use containerd
+      lineinfile:
+        path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+        regexp: '^Environment="KUBELET_EXTRA_ARGS=.*"'
+        line: 'Environment="KUBELET_EXTRA_ARGS=--container-runtime=remote --container-runtime-endpoint=unix:///run/containerd/containerd.sock"'
+        create: yes
+
+    - name: Reload systemd and restart kubelet
+      shell: |
+        systemctl daemon-reload
+        systemctl restart kubelet
