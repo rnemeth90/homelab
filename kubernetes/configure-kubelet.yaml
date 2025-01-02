@@ -1,4 +1,4 @@
-- name: Configure kubelet to use containerd
+- name: Configure kubelet to use containerd and set DNS servers
   hosts: kubernetes
   become: yes
   tasks:
@@ -9,12 +9,21 @@
 
     - name: Configure kubelet to use containerd
       lineinfile:
-        path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+        path: "{{ kubelet_config_file }}"
         regexp: '^Environment="KUBELET_EXTRA_ARGS=.*"'
         line: 'Environment="KUBELET_EXTRA_ARGS=--container-runtime=remote --container-runtime-endpoint=unix:///run/containerd/containerd.sock"'
         create: yes
+
+    - name: Set custom DNS servers
+      lineinfile:
+        path: /etc/resolv.conf
+        line: "nameserver {{ item }}"
+        create: yes
+        state: present
+      loop: "{{ custom_dns_servers }}"
 
     - name: Reload systemd and restart kubelet
       shell: |
         systemctl daemon-reload
         systemctl restart kubelet
+

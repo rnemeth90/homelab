@@ -1,0 +1,20 @@
+common_packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - software-properties-common
+  - chrony
+  - firewalld
+
+kubernetes_packages:
+  - kubelet
+  - kubeadm
+  - kubectl
+
+containerd_config_file: /etc/containerd/config.toml
+
+kubelet_config_file: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+custom_dns_servers:
+  - 8.8.8.8
+  - 8.8.4.4
