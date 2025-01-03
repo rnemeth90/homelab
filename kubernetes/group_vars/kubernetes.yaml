@@ -12,9 +12,14 @@ kubernetes_packages:
   - kubectl
 
 containerd_config_file: /etc/containerd/config.toml
-
+kubernetes_keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+kubernetes_repo: "https://pkgs.k8s.io/core:/stable:/v1.32/deb/"
 kubelet_config_file: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+dns_domain_name: "geekyryan.lan"
+pod_network_cidr: 10.32.0.0/16
+cluster_admin_username: pi
 
 custom_dns_servers:
   - 8.8.8.8
   - 8.8.4.4
+

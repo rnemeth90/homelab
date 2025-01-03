@@ -1,0 +1,98 @@
+- name: Install Kubernetes prerequisites and containerd
+  hosts: kubernetes
+  become: yes
+  tasks:
+    - name: Update apt cache and upgrade packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install common dependencies
+      apt:
+        name: "{{ common_packages }}"
+        state: present
+
+    - name: Add Kubernetes repository GPG key
+      ansible.builtin.command:
+        cmd: >
+          curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key |
+          gpg --dearmor -o {{ kubernetes_keyring }}
+        creates: "{{ kubernetes_keyring }}"
+
+    - name: Add Kubernetes repository
+      ansible.builtin.command:
+        cmd: echo "deb [signed-by={{ kubernetes_keyring }}] {{ kubernetes_repo }} /" |
+             tee /etc/apt/sources.list.d/kubernetes.list
+        creates: /etc/apt/sources.list.d/kubernetes.list
+
+    - name: Update apt cache for Kubernetes
+      apt:
+        update_cache: yes
+
+    - name: Install Kubernetes components
+      apt:
+        name: "{{ kubernetes_packages }}"
+        state: present
+
+    - name: Hold Kubernetes package versions
+      apt:
+        name: "{{ kubernetes_packages }}"
+        state: present
+        autoremove: no
+        force: yes
+      register: kubernetes_hold
+      when: kubernetes_packages is defined
+
+
+
+    - name: Add Docker GPG key
+      shell: |
+        curl -fsSL https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+      args:
+        creates: /usr/share/keyrings/docker-archive-keyring.gpg
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: >-
+          deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg]
+          https://download.docker.com/linux/{{ ansible_distribution | lower }}
+          {{ ansible_distribution_release }} stable
+        state: present
+      register: add_repo
+      failed_when: add_repo is failed
+      ignore_errors: no
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install containerd
+      apt:
+        name: containerd
+        state: present
+
+    - name: Configure containerd
+      shell: |
+        mkdir -p /etc/containerd
+        containerd config default | tee "{{ containerd_config_file }}"
+
+    - name: Restart containerd service
+      systemd:
+        name: containerd
+        state: restarted
+        enabled: yes
+
+    - name: Backup resolv.conf
+      shell: |
+        mv /etc/resolv.conf /etc/resolv.conf.bak
+
+    - name: Set DNS servers
+      blockinfile:
+        create: true
+        path: /etc/resolv.conf
+        block: |
+          search {{ dns_domain_name }}
+          {% for dns in custom_dns_servers %}
+          nameserver {{ dns }}
+          {% endfor %}
+        marker: "# ANSIBLE MANAGED BLOCK - DO NOT EDIT"

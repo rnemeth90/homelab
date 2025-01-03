@@ -1,0 +1,16 @@
+- name: Initialize Kubernetes masters
+  hosts: masters
+  become: yes
+  tasks:
+    - name: Initialize the cluster
+      shell: kubeadm init --pod-network-cidr={{ pod_network_cidr }}
+      register: kubeadm_output
+
+    - name: Save kubeadm join command
+      shell: echo "{{ kubeadm_output.stdout_lines | select('search', 'kubeadm join') | list | first }}" > /tmp/kubeadm_join_command.sh
+
+    - name: Configure kubectl for {{ cluster_admin_username }} user
+      shell: |
+        mkdir -p /home/{{ cluster_admin_username }}/.kube
+        cp -i /etc/kubernetes/admin.conf /home/{{ cluster_admin_username }}/.kube/config
+        chown {{ cluster_admin_username }}:{{ cluster_admin_username }} /home/{{ cluster_admin_username }}/.kube/config

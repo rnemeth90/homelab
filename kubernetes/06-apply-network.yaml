@@ -1,5 +1,5 @@
 - name: Deploy Weave Net CNI
-  hosts: master
+  hosts: masters
   become: yes
   tasks:
     - name: Install Weave Net

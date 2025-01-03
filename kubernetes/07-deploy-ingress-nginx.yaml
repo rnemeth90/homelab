@@ -1,0 +1,7 @@
+- name: Deploy Ingress-nginx
+  hosts: masters
+  become: yes
+  tasks:
+    - name: Install Ingress-nginx
+      shell: |
+        kubectl apply -f 
