@@ -2,6 +2,37 @@
   hosts: workers
   become: yes
   tasks:
+    - name: Check if cgroup memory is enabled
+      command: grep memory /proc/cgroups
+      register: cgroup_memory_check
+      failed_when: "'memory' not in cgroup_memory_check.stdout"
+
+    - name: Add cgroup parameters to GRUB
+      lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX.*'
+        line: 'GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1"'
+        state: present
+      notify: Update GRUB
+      when: "'memory' not in cgroup_memory_check.stdout"
+
+    - name: Ensure ip_forward is enabled
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        sysctl_set: yes
+        state: present
+
+    - name: Disable swap
+      shell: |
+        swapoff -a
+        sed -i '/swap/d' /etc/fstab
+
+    - name: Reboot to apply changes
+      reboot:
+        msg: "Rebooting to enable cgroups and disable swap"
+        connect_timeout: 300
+
     - name: Fetch join command from master
       fetch:
         src: /tmp/kubeadm_join_command.sh
@@ -10,3 +41,9 @@
 
     - name: Run kubeadm join
       shell: bash /tmp/kubeadm_join_command.sh
+
+  handlers:
+  - name: Update GRUB
+    command: update-grub
+
+

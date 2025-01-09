@@ -13,6 +13,12 @@
         state: started
         enabled: yes
 
+    - name: Enabling masquerade
+      firewalld:
+        masquerade: true
+        state: enabled
+        permanent: true
+
     - name: Open ports for Kubernetes control plane
       firewalld:
         port: "{{ item }}"
@@ -25,6 +31,9 @@
         - 10250/tcp
         - 10251/tcp
         - 10252/tcp
+        - 8285/udp
+        - 8472/udp 
+        - 30000-32767/tcp
       when: "'masters' in group_names"
 
     - name: Open ports for Kubernetes worker nodes
@@ -35,7 +44,8 @@
         immediate: yes
       loop:
         - 10250/tcp
-        - 10255/tcp
+        - 8285/udp
+        - 8472/udp 
         - 30000-32767/tcp
       when: "'workers' in group_names"
 

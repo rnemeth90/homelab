@@ -2,15 +2,52 @@
   hosts: masters
   become: yes
   tasks:
+    - name: Ensure cgroup kernel parameters are applied
+      shell: |
+        if ! grep -q 'cgroup_enable=memory' /boot/firmware/cmdline.txt; then
+          sed -i 's/$/ cgroup_enable=memory swapaccount=1/' /boot/firmware/cmdline.txt
+        fi
+        if ! grep -q 'cgroup_enable=memory' /proc/cmdline; then
+          echo "Kernel parameters not applied. Reboot required."
+          exit 1
+        fi
+      register: kernel_param_update
+      changed_when: "'Kernel parameters not applied' in kernel_param_update.stdout"
+
+    - name: Reboot the system to apply kernel parameters
+      reboot:
+      when: "'Kernel parameters not applied' in kernel_param_update.stdout"
+
+    - name: Ensure ip_forward is enabled
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        sysctl_set: yes
+        state: present
+
+    - name: Disable swap
+      shell: |
+        swapoff -a
+        sed -i '/swap/d' /etc/fstab
+
+    - name: Check if Kubernetes cluster is already initialized
+      stat:
+        path: /etc/kubernetes/admin.conf
+      register: kubeadm_initialized
+
     - name: Initialize the cluster
-      shell: kubeadm init --pod-network-cidr={{ pod_network_cidr }}
+      shell: kubeadm init --pod-network-cidr={{ pod_network_cidr }} --ignore-preflight-errors=Swap,Firewalld
       register: kubeadm_output
+      when: not kubeadm_initialized.stat.exists
 
     - name: Save kubeadm join command
-      shell: echo "{{ kubeadm_output.stdout_lines | select('search', 'kubeadm join') | list | first }}" > /tmp/kubeadm_join_command.sh
+      shell: |
+        echo 'kubeadm join {{ kubeadm_output.stdout_lines | select("search", "kubeadm join") | list | first }}' > /tmp/kubeadm_join_command.sh
+      when: not kubeadm_initialized.stat.exists
 
     - name: Configure kubectl for {{ cluster_admin_username }} user
       shell: |
         mkdir -p /home/{{ cluster_admin_username }}/.kube
         cp -i /etc/kubernetes/admin.conf /home/{{ cluster_admin_username }}/.kube/config
         chown {{ cluster_admin_username }}:{{ cluster_admin_username }} /home/{{ cluster_admin_username }}/.kube/config
+      when: not kubeadm_initialized.stat.exists
