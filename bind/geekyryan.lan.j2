@@ -1,0 +1,22 @@
+$TTL    86400
+@       IN      SOA     {{ primary_dns }}. {{ admin_email | replace('@', '.') }}. (
+                        {{ serial }} ; Serial
+                        3600       ; Refresh
+                        1800       ; Retry
+                        1209600    ; Expire
+                        86400 )    ; Minimum TTL
+
+        IN      NS      {{ primary_dns }}.
+        IN      NS      {{ secondary_dns }}.
+
+{% for record, value in a_records.items() %}
+{{ record }}        IN      A       {{ value }}
+{% endfor %}
+
+{% for record, value in cname_records.items() %}
+{{ record }}        IN      CNAME   {{ value }}
+{% endfor %}
+
+{% for record, value in mx_records.items() %}
+{{ record }}        IN      MX      {{ value.priority }} {{ value.mail_server }}
+{% endfor %}

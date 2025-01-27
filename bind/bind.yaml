@@ -1,0 +1,42 @@
+- name: Configure BIND DNS Server
+  hosts: dns_servers
+  become: yes
+  vars:
+    forwarders:
+      - 208.67.222.222
+      - 208.67.220.220
+    allow_query:
+      - 192.168.0.0/16
+    primary_dns: ns1.geekyryan.com
+    secondary_dns: ns2.example.com
+    admin_email: admin@example.com
+    serial: 2025012401
+    a_records:
+      www: 192.168.1.100
+      api: 192.168.1.101
+    cname_records:
+      mail: www
+    mx_records:
+      - { priority: 10, mail_server: mail.example.com }
+
+  tasks:
+    - name: Deploy BIND configuration
+      template:
+        src: templates/named.conf.options.j2
+        dest: /etc/bind/named.conf.options
+        owner: root
+        group: bind
+        mode: 0644
+
+    - name: Deploy zone file for example.com
+      template:
+        src: templates/db.example.com.j2
+        dest: /etc/bind/zones/db.example.com
+        owner: root
+        group: bind
+        mode: 0644
+
+    - name: Restart BIND service
+      service:
+        name: bind9
+        state: restarted

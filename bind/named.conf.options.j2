@@ -1,0 +1,36 @@
+options {
+    directory "/var/cache/bind";
+
+    {% if forwarders is defined and forwarders|length > 0 %}
+    forwarders {
+        {% for forwarder in forwarders %}
+        {{ forwarder }};
+        {% endfor %}
+    };
+    {% endif %}
+
+    dnssec-validation auto;
+
+    {% if allow_query is defined and allow_query|length > 0 %}
+    allow-query {
+        {% for ip in allow_query %}
+        {{ ip }};
+        {% endfor %}
+    };
+    {% endif %}
+
+    {% if listen_on is defined and listen_on|length > 0 %}
+    listen-on {
+        {% for ip in listen_on %}
+        {{ ip }};
+        {% endfor %}
+    };
+    {% else %}
+    listen-on { any; };
+    {% endif %}
+
+    listen-on-v6 { any; };
+
+    auth-nxdomain no; # conform to RFC1035
+    recursion yes;
+};
