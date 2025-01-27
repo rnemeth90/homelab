@@ -1,0 +1,2 @@
+# configured firewalld for k8s
+# fix resolv.conf (configure search and remove nameserver)

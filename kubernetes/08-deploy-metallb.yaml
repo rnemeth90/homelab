@@ -1,0 +1,7 @@
+- name: Deploy metallb
+  hosts: masters
+  become: yes
+  tasks:
+    - name: Install Ingress-nginx
+      shell: |
+        kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/{{ metallb_version }}/config/manifests/metallb-native.yaml
