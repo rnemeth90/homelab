@@ -1,3 +1,9 @@
+acl localclients {
+        10.0.0.0/16;
+        192.168.86.0/24;
+        localhost;
+        localnets;
+};
 options {
     directory "/var/cache/bind";
 

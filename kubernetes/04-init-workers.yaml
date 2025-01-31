@@ -23,6 +23,11 @@
         sysctl_set: yes
         state: present
 
+    - name: enable the Kubelet service, and enable it persistently
+      service:
+        name: kubelet
+        enabled: yes
+
     - name: Disable swap
       shell: |
         swapoff -a

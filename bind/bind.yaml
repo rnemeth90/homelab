@@ -1,25 +1,56 @@
-- name: Configure BIND DNS Server
+- name: Install and Configure BIND DNS Server
   hosts: dns_servers
   become: yes
   vars:
+    domain_name: "geekyryan.lan"
     forwarders:
       - 208.67.222.222
       - 208.67.220.220
     allow_query:
       - 192.168.0.0/16
-    primary_dns: ns1.geekyryan.com
-    secondary_dns: ns2.example.com
-    admin_email: admin@example.com
+    primary_dns: ns1.geekyryan.lan
+    secondary_dns: ns2.example.lan
+    admin_email: rtn@geekyryan.com
     serial: 2025012401
     a_records:
       www: 192.168.1.100
       api: 192.168.1.101
+      dns1: 10.0.1.1
+      dns2: 10.0.1.2
+      server1: 10.0.1.5
+      server2: 10.0.1.6
+      ftp: 
+        - 10.0.1.3
+        - 10.0.1.4
     cname_records:
-      mail: www
+      mail: server1
+      mail2: server2
+      www: server1
     mx_records:
       - { priority: 10, mail_server: mail.example.com }
+      - { priority: 20, mail_server: mail2.example.com }
 
   tasks:
+    - name: Install BIND Utils
+      apt:
+        name: bind9utils
+        state: present
+
+    - name: Install BIND Docs
+      apt:
+        name: bind9-doc
+        state: present
+
+    - name: Ensure BIND is installed (Debian/Ubuntu)
+      apt:
+        name: bind9
+        state: present
+
+    - name: Create Zones Directory
+      ansible.builtin.file:
+        path: /etc/bind/zones
+        state: directory
+
     - name: Deploy BIND configuration
       template:
         src: templates/named.conf.options.j2
@@ -28,15 +59,33 @@
         group: bind
         mode: 0644
 
-    - name: Deploy zone file for example.com
-      template:
-        src: templates/db.example.com.j2
-        dest: /etc/bind/zones/db.example.com
+
+    - name: Append zone configuration to named.conf.default-zones
+      blockinfile:
+        path: /etc/bind/named.conf.default-zones
+        marker: "// BEGIN ANSIBLE MANAGED BLOCK FOR {{ domain_name }} //"
+        block: |
+          zone "{{ domain_name }}" {
+              type master;
+              file "/etc/bind/zones/db.{{ domain_name }}";
+          };
         owner: root
         group: bind
         mode: 0644
+      notify: Restart BIND
 
-    - name: Restart BIND service
+    - name: Deploy zone file for {{ domain_name }}
+      template:
+        src: templates/geekyryan.lan.j2
+        dest: /etc/bind/zones/db.{{ domain_name }}
+        owner: root
+        group: bind
+        mode: 0644
+      notify: Restart BIND
+
+  handlers:
+    - name: Restart BIND
       service:
         name: bind9
         state: restarted
+      when: ansible_facts['os_family'] == 'Debian'

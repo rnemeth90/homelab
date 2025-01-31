@@ -12,18 +12,41 @@
         name: "{{ common_packages }}"
         state: present
 
+    # - name: Add Kubernetes repository GPG key
+    #   ansible.builtin.command:
+    #     cmd: >
+    #       curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key |
+    #       gpg --dearmor -o {{ kubernetes_keyring }}
+    #     creates: "{{ kubernetes_keyring }}"
+
     - name: Add Kubernetes repository GPG key
       ansible.builtin.command:
         cmd: >
           curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key |
-          gpg --dearmor -o {{ kubernetes_keyring }}
-        creates: "{{ kubernetes_keyring }}"
+          gpg --dearmor -o /usr/share/keyrings/kubernetes-archive-keyring.gpg
+        creates: /usr/share/keyrings/kubernetes-archive-keyring.gpg
 
     - name: Add Kubernetes repository
       ansible.builtin.command:
-        cmd: echo "deb [signed-by={{ kubernetes_keyring }}] {{ kubernetes_repo }} /" |
+        cmd: echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] {{ kubernetes_repo }} /" |
              tee /etc/apt/sources.list.d/kubernetes.list
         creates: /etc/apt/sources.list.d/kubernetes.list
+
+    # - name: Add Kubernetes repository
+    #   ansible.builtin.command:
+    #     cmd: echo "deb [signed-by={{ kubernetes_keyring }}] {{ kubernetes_repo }} /" |
+    #          tee /etc/apt/sources.list.d/kubernetes.list
+    #     creates: /etc/apt/sources.list.d/kubernetes.list
+
+    - name: Update apt cache for Kubernetes
+      apt:
+        update_cache: yes
+      register: apt_update_result
+
+    - name: Ensure apt update has completed before proceeding
+      pause:
+        seconds: 5
+      when: apt_update_result.changed
 
     - name: Update apt cache for Kubernetes
       apt:
@@ -33,6 +56,7 @@
       apt:
         name: "{{ kubernetes_packages }}"
         state: present
+        update_cache: true
 
     - name: Hold Kubernetes package versions
       apt:
@@ -42,8 +66,6 @@
         force: yes
       register: kubernetes_hold
       when: kubernetes_packages is defined
-
-
 
     - name: Add Docker GPG key
       shell: |

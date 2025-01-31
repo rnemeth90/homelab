@@ -7,9 +7,9 @@ common_packages:
   - firewalld
 
 kubernetes_packages:
-  - kubelet
-  - kubeadm
-  - kubectl
+  - kubelet=1.32.*
+  - kubeadm=1.32.*
+  - kubectl=1.32.*
 
 containerd_config_file: /etc/containerd/config.toml
 kubernetes_keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
@@ -23,6 +23,5 @@ weave_version: v2.8.1
 metallb_version: v0.14.9
 
 custom_dns_servers:
-  - 8.8.8.8
-  - 8.8.4.4
+- 192.168.86.5
 
