@@ -1,0 +1,22 @@
+- name: Configure kubelet to use containerd
+  hosts: kubernetes
+  become: yes
+  tasks:
+    - name: Ensure kubelet config directory exists
+      file:
+        path: /var/lib/kubelet
+        state: directory
+        mode: '0755'
+
+    - name: Modify kubelet config to use containerd
+      lineinfile:
+        path: /var/lib/kubelet/config.yaml
+        regexp: '^containerRuntimeEndpoint:'
+        line: 'containerRuntimeEndpoint: "unix:///run/containerd/containerd.sock"'
+        create: yes
+
+    - name: Restart kubelet
+      systemd:
+        name: kubelet
+        state: restarted
+        enabled: yes

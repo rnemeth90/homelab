@@ -39,13 +39,15 @@
         connect_timeout: 300
 
     - name: Fetch join command from master
-      fetch:
-        src: /tmp/kubeadm_join_command.sh
-        dest: /tmp/kubeadm_join_command.sh
-        flat: yes
+      shell: kubeadm token create --print-join-command
+      register: kubeadm_join_command
+      delegate_to: controlplane00
+      run_once: true
 
-    - name: Run kubeadm join
-      shell: bash /tmp/kubeadm_join_command.sh
+    - name: Run kubeadm join on workers
+      shell: "{{ kubeadm_join_command.stdout }}"
+      args:
+        executable: /bin/bash
 
   handlers:
   - name: Update GRUB

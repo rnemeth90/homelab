@@ -41,9 +41,14 @@
       when: not kubeadm_initialized.stat.exists
 
     - name: Save kubeadm join command
-      shell: |
-        echo 'kubeadm join {{ kubeadm_output.stdout_lines | select("search", "kubeadm join") | list | first }}' > /tmp/kubeadm_join_command.sh
-      when: not kubeadm_initialized.stat.exists
+      shell: kubeadm token create --print-join-command
+      register: kubeadm_join_command
+      # when: not kubeadm_initialized.stat.exists
+
+    - name: Store join command as a fact
+      set_fact:
+        kubeadm_join_command: "{{ kubeadm_join_command.stdout }}"
+      # when: kubeadm_join_command is changed
 
     - name: Configure kubectl for {{ cluster_admin_username }} user
       shell: |

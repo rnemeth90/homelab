@@ -31,6 +31,8 @@
         - 10250/tcp
         - 10251/tcp
         - 10252/tcp
+        - 6783/udp
+        - 6783/tcp
         - 8285/udp
         - 8472/udp 
         - 30000-32767/tcp
@@ -45,6 +47,8 @@
       loop:
         - 10250/tcp
         - 8285/udp
+        - 6783/udp
+        - 6783/tcp
         - 8472/udp 
         - 30000-32767/tcp
       when: "'workers' in group_names"
