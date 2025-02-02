@@ -1,0 +1,24 @@
+- name: Install ingress-nginx using Helm
+  hosts: masters
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Add ingress-nginx Helm repository
+      kubernetes.core.helm_repository:
+        name: ingress-nginx
+        repo_url: https://kubernetes.github.io/ingress-nginx
+
+    - name: Update Helm repositories
+      command: helm repo update
+      changed_when: false
+
+    - name: Install ingress-nginx
+      kubernetes.core.helm:
+        name: ingress-nginx
+        chart_ref: ingress-nginx/ingress-nginx
+        release_namespace: ingress-nginx
+        create_namespace: yes
+        values:
+          controller:
+            service:
+              type: LoadBalancer

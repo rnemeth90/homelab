@@ -1,7 +1,0 @@
-- name: Deploy Ingress-nginx
-  hosts: masters
-  become: yes
-  tasks:
-    - name: Install Ingress-nginx
-      shell: |
-        kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-{{ ingress_nginx_version }}/deploy/static/provider/baremetal/deploy.yaml

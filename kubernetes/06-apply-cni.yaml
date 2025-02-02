@@ -1,7 +1,0 @@
-- name: Deploy Cilium CNI
-  hosts: masters
-  become: yes
-  tasks:
-    - name: Install Cilium
-      shell: |
-         kubectl apply -f https://raw.githubusercontent.com/cilium/cilium/main/examples/kubernetes-dns/kubernetes-dns.yam
