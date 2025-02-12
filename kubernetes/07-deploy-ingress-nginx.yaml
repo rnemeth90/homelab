@@ -2,7 +2,33 @@
   hosts: masters
   gather_facts: no
   become: yes
+
+  pre_tasks:
+    - name: Ensure Python and pip are installed
+      package:
+        name: 
+          - python3
+          - python3-pip
+        state: present
+
+    - name: Install PyYAML for Ansible
+      apt:
+        name: python3-yaml
+        state: present
+
   tasks:
+    - name: Install helm if not exists
+      unarchive:
+        src: https://get.helm.sh/helm-v3.11.0-linux-arm64.tar.gz
+        dest: /usr/local/bin
+        extra_opts: "--strip-components=1"
+        owner: root
+        group: root
+        mode: 0755
+        remote_src: true
+      args:
+        creates: /usr/local/bin/helm
+
     - name: Add ingress-nginx Helm repository
       kubernetes.core.helm_repository:
         name: ingress-nginx
@@ -13,6 +39,8 @@
       changed_when: false
 
     - name: Install ingress-nginx
+      environment:
+        KUBECONFIG: "/etc/kubernetes/admin.conf"
       kubernetes.core.helm:
         name: ingress-nginx
         chart_ref: ingress-nginx/ingress-nginx
