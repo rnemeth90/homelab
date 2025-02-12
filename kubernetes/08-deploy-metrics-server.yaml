@@ -1,0 +1,11 @@
+- name: Install Metrics Server
+  hosts: masters
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Add ingress-nginx Helm repository
+      environment:
+        KUBECONFIG: "/etc/kubernetes/admin.conf"
+      shell: |
+        kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
