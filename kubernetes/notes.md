@@ -3,14 +3,14 @@
 - [x] Install nginx-ingress
 - [x] Install prometheus
 - [x] Install grafana
+- [x] Install Gatekeeper
 - [ ] Install ArgoCD
-- [ ] Install Falco
 - [ ] Install ELK Stack
+- [ ] Install Falco
+- [ ] Install Keda
 - [ ] Install RabbitMQ
 - [ ] Install Redis
 - [ ] Install postgresql
-- [ ] Install Keda
-- [x] Install Gatekeeper
 - [ ] Install minecraft server
 - [ ] Install Jenkins
 - 
