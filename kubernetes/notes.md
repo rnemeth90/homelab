@@ -1,5 +1,5 @@
 # To Do
-- [ ] Install cert-manager
+- [x] Install cert-manager
 - [x] Install nginx-ingress
 - [x] Install prometheus
 - [x] Install grafana
@@ -10,7 +10,7 @@
 - [ ] Install Redis
 - [ ] Install postgresql
 - [ ] Install Keda
-- [ ] Install Gatekeeper
+- [x] Install Gatekeeper
 - [ ] Install minecraft server
 - [ ] Install Jenkins
 - 
