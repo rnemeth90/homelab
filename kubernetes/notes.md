@@ -4,7 +4,7 @@
 - [x] Install prometheus
 - [x] Install grafana
 - [x] Install Gatekeeper
-- [ ] Install ArgoCD
+- [x] Install ArgoCD
 - [ ] Install ELK Stack
 - [ ] Install Falco
 - [ ] Install Keda
