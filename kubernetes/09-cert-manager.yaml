@@ -32,20 +32,20 @@
         create_namespace: yes
         values:
           installCRDs: true
-
-    - name: Wait for cert-manager pods to be ready
-      environment:
-        KUBECONFIG: "/etc/kubernetes/admin.conf"
-      kubernetes.core.k8s_info:
-        kind: Pod
-        namespace: cert-manager
-        label_selectors:
-          - "app.kubernetes.io/name=cert-manager"
-      register: cert_manager_pods
-      until: cert_manager_pods.resources | selectattr('status.phase', 'equalto', 'Running') | list | length == 3
-      retries: 10
-      delay: 10
-
+    #
+    # - name: Wait for cert-manager pods to be ready
+    #   environment:
+    #     KUBECONFIG: "/etc/kubernetes/admin.conf"
+    #   kubernetes.core.k8s_info:
+    #     kind: Pod
+    #     namespace: cert-manager
+    #     label_selectors:
+    #       - "app.kubernetes.io/name=cert-manager"
+    #   register: cert_manager_pods
+    #   until: cert_manager_pods.resources | selectattr('status.phase', 'equalto', 'Running') | list | length == 3
+    #   retries: 10
+    #   delay: 10
+    #
     - name: Apply Let's Encrypt ClusterIssuer
       environment:
         KUBECONFIG: "/etc/kubernetes/admin.conf"
