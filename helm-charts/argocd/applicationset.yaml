@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: helm-charts
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    # Auto-discovers every directory in the repo that contains a Chart.yaml
+    # (i.e. every helm chart), so new charts are picked up automatically.
+    - git:
+        repoURL: https://github.com/rnemeth90/helm-charts.git
+        revision: HEAD
+        files:
+          - path: "**/Chart.yaml"
+  template:
+    metadata:
+      name: "{{.path.basename}}"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/rnemeth90/helm-charts.git
+        targetRevision: HEAD
+        path: "{{.path.path}}"
+        helm:
+          valueFiles:
+            - values.yaml
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{.path.basename}}"
+      ignoreDifferences:
+        # This cluster's API server doesn't persist the `hostUsers` PodSpec
+        # field (user-namespace isolation toggle) that the headlamp chart
+        # always sets, causing a perpetual (harmless) diff. Scoped tightly
+        # enough that it's a no-op for every other generated app.
+        - group: apps
+          kind: Deployment
+          name: headlamp
+          namespace: headlamp
+          jqPathExpressions:
+            - .spec.template.spec.hostUsers
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m

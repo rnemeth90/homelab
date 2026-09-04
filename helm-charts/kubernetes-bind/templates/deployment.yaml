@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "bind9.fullname" . }}
+  labels:
+    {{- include "bind9.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: bind9
+  template:
+    metadata:
+      labels:
+        app: bind9
+    spec:
+      containers:
+      - name: bind9
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 53
+          protocol: UDP
+        - containerPort: 53
+          protocol: TCP
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/bind
+        {{ if .Values.persistence.enabled }}
+        - name: data-volume
+          mountPath: /var/cache/bind
+        {{ end }}
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ include "bind9.fullname" . }}-config
+      {{ if .Values.persistence.enabled }}
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: {{ include "bind9.fullname" . }}-pvc
+      {{ end }}
+

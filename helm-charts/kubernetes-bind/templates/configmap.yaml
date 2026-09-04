@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "bind9.fullname" . }}-config
+  labels:
+    {{- include "bind9.labels" . | nindent 4 }}
+data:
+  named.conf: |-
+{{ .Values.config.namedConf | indent 4 }}
+  example.com.db: |-
+{{ .Values.config.zoneFiles.examplecomdb | indent 4 }}
