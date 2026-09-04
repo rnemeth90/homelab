@@ -6,6 +6,6 @@ metadata:
   namespace: fleet-local
 spec:
   # Everything from this repo will be ran in this cluster. You trust me right?
-  repo: "https://github.com/rnemeth90/helm-charts"
+  repo: "https://github.com/rnemeth90/homelab"
   paths:
-  - kubernetes-bind
+  - helm-charts/kubernetes-bind

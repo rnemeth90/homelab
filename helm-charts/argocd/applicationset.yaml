@@ -10,17 +10,17 @@ spec:
     # Auto-discovers every directory in the repo that contains a Chart.yaml
     # (i.e. every helm chart), so new charts are picked up automatically.
     - git:
-        repoURL: https://github.com/rnemeth90/helm-charts.git
+        repoURL: https://github.com/rnemeth90/homelab.git
         revision: HEAD
         files:
-          - path: "**/Chart.yaml"
+          - path: "helm-charts/**/Chart.yaml"
   template:
     metadata:
       name: "{{.path.basename}}"
     spec:
       project: default
       source:
-        repoURL: https://github.com/rnemeth90/helm-charts.git
+        repoURL: https://github.com/rnemeth90/homelab.git
         targetRevision: HEAD
         path: "{{.path.path}}"
         helm:
