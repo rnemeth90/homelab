@@ -1,0 +1,16 @@
+# To Do
+- [x] Install cert-manager
+- [x] Install nginx-ingress
+- [x] Install prometheus
+- [x] Install grafana
+- [x] Install Gatekeeper
+- [x] Install ArgoCD
+- [ ] Install ELK Stack
+- [ ] Install Falco
+- [ ] Install Keda
+- [ ] Install RabbitMQ
+- [ ] Install Redis
+- [ ] Install postgresql
+- [ ] Install minecraft server
+- [ ] Install Jenkins
+- 

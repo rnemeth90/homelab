@@ -1,0 +1,33 @@
+$ORIGIN {{ domain_name }}.
+$TTL 86400
+@   IN  SOA {{ primary_dns }}. {{ admin_email | replace('@', '.') }}. (
+        {{ serial }} ; serial
+        21600       ; refresh after 6 hours
+        3600        ; retry after 1 hour
+        604800      ; expire after 1 week
+        86400 )     ; minimum TTL of 1 day
+
+    IN  NS  {{ primary_dns }}.
+    IN  NS  {{ secondary_dns }}.
+
+# A Records
+{% if a_records is defined %}
+{% for record, ip in a_records.items() %}
+{{ record }}    IN  A   {{ ip }}
+{% endfor %}
+{% endif %}
+
+# CNAME Records
+{% if cname_records is defined %}
+{% for record, alias in cname_records.items() %}
+{{ record }}    IN  CNAME   {{ alias }}
+{% endfor %}
+{% endif %}
+
+# MX Records
+{% if mx_records is defined %}
+{% for mx in mx_records %}
+@   IN  MX  {{ mx.priority }} {{ mx.mail_server }}
+{% endfor %}
+{% endif %}
+

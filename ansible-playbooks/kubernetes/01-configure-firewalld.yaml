@@ -1,0 +1,59 @@
+- name: Configure firewalld for Kubernetes
+  hosts: kubernetes
+  become: yes
+  tasks:
+    - name: Ensure firewalld is installed
+      package:
+        name: firewalld
+        state: present
+
+    - name: Start and enable firewalld
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Enabling masquerade
+      firewalld:
+        masquerade: true
+        state: enabled
+        permanent: true
+
+    - name: Open ports for Kubernetes control plane
+      firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled
+        immediate: yes
+      loop:
+        - 6443/tcp
+        - 2379-2380/tcp
+        - 10250/tcp
+        - 10251/tcp
+        - 10252/tcp
+        - 6783/udp
+        - 6783/tcp
+        - 8285/udp
+        - 8472/udp 
+        - 30000-32767/tcp
+      when: "'masters' in group_names"
+
+    - name: Open ports for Kubernetes worker nodes
+      firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled
+        immediate: yes
+      loop:
+        - 10250/tcp
+        - 8285/udp
+        - 6783/udp
+        - 6783/tcp
+        - 8472/udp 
+        - 30000-32767/tcp
+      when: "'workers' in group_names"
+
+    - name: Reload firewalld to apply changes
+      systemd:
+        name: firewalld
+        state: reloaded

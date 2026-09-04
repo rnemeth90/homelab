@@ -1,0 +1,7 @@
+- name: print vars
+  hosts: kubernetes
+  tasks:
+  - debug:
+      var: ansible_facts
+  - name: ping
+    ansible.builtin.ping:

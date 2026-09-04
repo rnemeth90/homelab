@@ -1,0 +1,56 @@
+- name: Join Kubernetes worker nodes
+  hosts: workers
+  become: yes
+  tasks:
+    - name: Check if cgroup memory is enabled
+      command: grep memory /proc/cgroups
+      register: cgroup_memory_check
+      failed_when: "'memory' not in cgroup_memory_check.stdout"
+
+    - name: Add cgroup parameters to GRUB
+      lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX.*'
+        line: 'GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1"'
+        state: present
+      notify: Update GRUB
+      when: "'memory' not in cgroup_memory_check.stdout"
+
+    - name: Ensure ip_forward is enabled
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        sysctl_set: yes
+        state: present
+
+    - name: enable the Kubelet service, and enable it persistently
+      service:
+        name: kubelet
+        enabled: yes
+
+    - name: Disable swap
+      shell: |
+        swapoff -a
+        sed -i '/swap/d' /etc/fstab
+
+    - name: Reboot to apply changes
+      reboot:
+        msg: "Rebooting to enable cgroups and disable swap"
+        connect_timeout: 300
+
+    - name: Fetch join command from master
+      shell: kubeadm token create --print-join-command
+      register: kubeadm_join_command
+      delegate_to: controlplane00
+      run_once: true
+
+    - name: Run kubeadm join on workers
+      shell: "{{ kubeadm_join_command.stdout }}"
+      args:
+        executable: /bin/bash
+
+  handlers:
+  - name: Update GRUB
+    command: update-grub
+
+

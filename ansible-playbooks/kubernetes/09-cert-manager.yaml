@@ -1,0 +1,70 @@
+- name: Deploy cert-manager using Helm
+  hosts: masters
+  gather_facts: no
+  become: yes
+
+  tasks:
+    - name: Add Jetstack Helm repository
+      kubernetes.core.helm_repository:
+        name: jetstack
+        repo_url: https://charts.jetstack.io
+
+    - name: Update Helm repositories
+      command: helm repo update
+      changed_when: false
+
+    - name: Create cert-manager namespace
+      environment:
+        KUBECONFIG: "/etc/kubernetes/admin.conf"
+      kubernetes.core.k8s:
+        name: cert-manager
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: Install cert-manager
+      environment:
+        KUBECONFIG: "/etc/kubernetes/admin.conf"
+      kubernetes.core.helm:
+        name: cert-manager
+        chart_ref: jetstack/cert-manager
+        release_namespace: cert-manager
+        create_namespace: yes
+        values:
+          installCRDs: true
+    #
+    # - name: Wait for cert-manager pods to be ready
+    #   environment:
+    #     KUBECONFIG: "/etc/kubernetes/admin.conf"
+    #   kubernetes.core.k8s_info:
+    #     kind: Pod
+    #     namespace: cert-manager
+    #     label_selectors:
+    #       - "app.kubernetes.io/name=cert-manager"
+    #   register: cert_manager_pods
+    #   until: cert_manager_pods.resources | selectattr('status.phase', 'equalto', 'Running') | list | length == 3
+    #   retries: 10
+    #   delay: 10
+    #
+    - name: Apply Let's Encrypt ClusterIssuer
+      environment:
+        KUBECONFIG: "/etc/kubernetes/admin.conf"
+      kubernetes.core.k8s:
+        state: present
+        namespace: cert-manager
+        definition:
+          apiVersion: cert-manager.io/v1
+          kind: ClusterIssuer
+          metadata:
+            name: letsencrypt-prod
+          spec:
+            acme:
+              email: "your-email@example.com"
+              server: "https://acme-v02.api.letsencrypt.org/directory"
+              privateKeySecretRef:
+                name: letsencrypt-prod
+              solvers:
+                - http01:
+                    ingress:
+                      class: nginx
+

@@ -1,0 +1,57 @@
+- name: Install Cilium CLI and Deploy Cilium CNI
+  hosts: controlplane00
+  become: yes
+  gather_facts: yes
+  tasks:
+    - name: Set architecture variable
+      ansible.builtin.set_fact:
+        cilium_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' }}"
+
+    - name: Get latest Cilium version from GitHub
+      ansible.builtin.uri:
+        url: "https://api.github.com/repos/cilium/cilium/releases/latest"
+        return_content: yes
+      register: cilium_release
+
+    - name: Extract latest Cilium version
+      ansible.builtin.set_fact:
+        cilium_version: "{{ cilium_release.json.tag_name | regex_replace('^v', '') }}"  # Remove 'v' prefix if present
+
+    - name: Download Cilium CLI binary
+      ansible.builtin.get_url:
+        url: "https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-{{ cilium_arch }}.tar.gz"
+        dest: "/tmp/cilium-linux-{{ cilium_arch }}.tar.gz"
+        mode: '0644'
+
+    - name: Extract Cilium CLI
+      ansible.builtin.unarchive:
+        src: "/tmp/cilium-linux-{{ cilium_arch }}.tar.gz"
+        dest: "/usr/local/bin/"
+        remote_src: yes
+        extra_opts: ["--strip-components=0"]
+
+    - name: Ensure Cilium CLI is executable
+      ansible.builtin.file:
+        path: "/usr/local/bin/cilium"
+        mode: "0755"
+
+    - name: Verify Cilium CLI installation
+      command: cilium version
+      register: cilium_version_output
+      changed_when: false
+
+    - name: Install Cilium CNI in Kubernetes
+      command: >
+        cilium install --version {{ cilium_version }}
+      environment:
+        KUBECONFIG: "/etc/kubernetes/admin.conf"
+      register: cilium_install
+      changed_when: "'Success' in cilium_install.stdout"
+
+    - name: Validate Cilium installation
+      command: >
+        cilium status --wait
+      environment:
+        KUBECONFIG: "/etc/kubernetes/admin.conf"
+      register: cilium_status
+      changed_when: false

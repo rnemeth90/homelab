@@ -1,0 +1,124 @@
+- name: Install Kubernetes prerequisites and containerd
+  hosts: kubernetes
+  become: yes
+  tasks:
+    - name: Update apt cache and upgrade packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install common dependencies
+      apt:
+        name: "{{ common_packages }}"
+        state: present
+
+    - name: Download Kubernetes repository GPG key
+      ansible.builtin.get_url:
+        url: https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key
+        dest: /tmp/kubernetes-release.key
+        mode: '0644'
+
+    - name: Decrypt Kubernetes repository GPG key
+      ansible.builtin.command:
+        cmd: gpg --dearmor -o /usr/share/keyrings/kubernetes-archive-keyring.gpg /tmp/kubernetes-release.key
+        creates: /usr/share/keyrings/kubernetes-archive-keyring.gpg
+
+    - name: Remove temporary Kubernetes repository key
+      ansible.builtin.file:
+        path: /tmp/kubernetes-release.key
+        state: absent
+
+    - name: Add Kubernetes repository
+      ansible.builtin.lineinfile:
+        path: /etc/apt/sources.list.d/kubernetes.list
+        line: "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] {{ kubernetes_repo }} /"
+        create: yes
+        mode: '0644'
+
+    - name: Update apt cache for Kubernetes
+      apt:
+        update_cache: yes
+      register: apt_update_result
+
+    - name: Ensure apt update has completed before proceeding
+      pause:
+        seconds: 5
+      when: apt_update_result.changed
+
+    - name: Update apt cache for Kubernetes
+      apt:
+        update_cache: yes
+
+    - name: Install Kubernetes components
+      apt:
+        name: "{{ kubernetes_packages }}"
+        state: present
+        update_cache: true
+
+    - name: Hold Kubernetes package versions
+      apt:
+        name: "{{ kubernetes_packages }}"
+        state: present
+        autoremove: no
+        force: yes
+      register: kubernetes_hold
+      when: kubernetes_packages is defined
+
+    - name: Add Docker GPG key
+      shell: |
+        curl -fsSL https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+      args:
+        creates: /usr/share/keyrings/docker-archive-keyring.gpg
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: >-
+          deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg]
+          https://download.docker.com/linux/{{ ansible_distribution | lower }}
+          {{ ansible_distribution_release }} stable
+        state: present
+      register: add_repo
+      failed_when: add_repo is failed
+      ignore_errors: no
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install containerd
+      apt:
+        name: containerd
+        state: present
+
+    - name: Configure containerd
+      shell: |
+        mkdir -p /etc/containerd
+        containerd config default | tee "{{ containerd_config_file }}"
+
+    - name: Ensure SystemdCgroup is set to true in containerd config.toml
+      ansible.builtin.lineinfile:
+        path: /etc/containerd/config.toml
+        regexp: '^\s*SystemdCgroup\s*='
+        line: '            SystemdCgroup = true'
+        backrefs: true
+
+    - name: Restart containerd service
+      systemd:
+        name: containerd
+        state: restarted
+        enabled: yes
+
+    - name: Backup resolv.conf
+      shell: |
+        mv /etc/resolv.conf /etc/resolv.conf.bak
+
+    - name: Set DNS servers
+      blockinfile:
+        create: true
+        path: /etc/resolv.conf
+        block: |
+          search {{ dns_domain_name }}
+          {% for dns in custom_dns_servers %}
+          nameserver {{ dns }}
+          {% endfor %}
+        marker: "# ANSIBLE MANAGED BLOCK - DO NOT EDIT"
