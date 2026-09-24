@@ -1,0 +1,16 @@
+qdrant:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
+    hosts:
+      - host: qdrant.geekyryan.lan
+        paths:
+          - path: /
+            pathType: Prefix
+            servicePort: 6333
+    tls:
+      - secretName: qdrant-tls
+        hosts:
+          - qdrant.geekyryan.lan

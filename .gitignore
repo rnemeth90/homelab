@@ -1,0 +1,3 @@
+# Vendored helm chart dependencies (rebuilt by `helm dependency build` /
+# ArgoCD's repo-server; Chart.lock keeps the resolved version pinned)
+helm-charts/*/charts/*.tgz

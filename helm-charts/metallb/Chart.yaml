@@ -1,0 +1,10 @@
+apiVersion: v2
+name: metallb
+description: Wrapper chart for MetalLB, including our IPAddressPool and L2Advertisement configuration
+type: application
+version: 0.1.0
+appVersion: "0.14.9"
+dependencies:
+  - name: metallb
+    version: "*"
+    repository: https://metallb.github.io/metallb

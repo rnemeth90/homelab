@@ -14,9 +14,16 @@
         regexp: '^containerRuntimeEndpoint:'
         line: 'containerRuntimeEndpoint: "unix:///run/containerd/containerd.sock"'
         create: yes
+      notify: Restart kubelet
 
+    - name: Ensure kubelet is started and enabled
+      systemd:
+        name: kubelet
+        state: started
+        enabled: yes
+
+  handlers:
     - name: Restart kubelet
       systemd:
         name: kubelet
         state: restarted
-        enabled: yes

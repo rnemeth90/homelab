@@ -1,0 +1,10 @@
+apiVersion: v2
+name: ingress-nginx
+description: Wrapper chart for ingress-nginx, the cluster's LoadBalancer-backed ingress controller
+type: application
+version: 0.1.0
+appVersion: "1.12.0"
+dependencies:
+  - name: ingress-nginx
+    version: "*"
+    repository: https://kubernetes.github.io/ingress-nginx

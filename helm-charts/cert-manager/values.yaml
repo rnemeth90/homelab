@@ -1,0 +1,12 @@
+cert-manager:
+  installCRDs: true
+
+clusterIssuer:
+  enabled: true
+  # ACME account email - update to a real address you control.
+  email: "your-email@example.com"
+  # Must be created manually (not committed to git), e.g.:
+  #   kubectl -n cert-manager create secret generic cloudflare-api-token-secret \
+  #     --from-literal=api-token=<cloudflare-scoped-api-token>
+  # Token needs Zone:DNS:Edit permission for the zone(s) being used.
+  secretName: cloudflare-api-token-secret

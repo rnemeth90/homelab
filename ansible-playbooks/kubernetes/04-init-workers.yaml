@@ -13,6 +13,7 @@
         regexp: '^GRUB_CMDLINE_LINUX.*'
         line: 'GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1"'
         state: present
+      register: grub_update
       notify: Update GRUB
       when: "'memory' not in cgroup_memory_check.stdout"
 
@@ -28,26 +29,42 @@
         name: kubelet
         enabled: yes
 
+    - name: Check if swap is active
+      command: swapon --show
+      register: swap_check
+      changed_when: false
+
     - name: Disable swap
       shell: |
         swapoff -a
         sed -i '/swap/d' /etc/fstab
+      register: swap_disabled
+      when: swap_check.stdout != ""
 
     - name: Reboot to apply changes
       reboot:
         msg: "Rebooting to enable cgroups and disable swap"
         connect_timeout: 300
+      when: grub_update is changed or swap_disabled is changed
+
+    - name: Check if node has already joined the cluster
+      stat:
+        path: /etc/kubernetes/kubelet.conf
+      register: kubelet_conf
 
     - name: Fetch join command from master
       shell: kubeadm token create --print-join-command
       register: kubeadm_join_command
       delegate_to: controlplane00
       run_once: true
+      changed_when: false
+      when: not kubelet_conf.stat.exists
 
     - name: Run kubeadm join on workers
       shell: "{{ kubeadm_join_command.stdout }}"
       args:
         executable: /bin/bash
+      when: not kubelet_conf.stat.exists
 
   handlers:
   - name: Update GRUB

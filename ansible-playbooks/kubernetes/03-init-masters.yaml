@@ -25,10 +25,16 @@
         sysctl_set: yes
         state: present
 
+    - name: Check if swap is active
+      command: swapon --show
+      register: swap_check
+      changed_when: false
+
     - name: Disable swap
       shell: |
         swapoff -a
         sed -i '/swap/d' /etc/fstab
+      when: swap_check.stdout != ""
 
     - name: Check if Kubernetes cluster is already initialized
       stat:
@@ -43,12 +49,13 @@
     - name: Save kubeadm join command
       shell: kubeadm token create --print-join-command
       register: kubeadm_join_command
-      # when: not kubeadm_initialized.stat.exists
+      changed_when: false
+      when: not kubeadm_initialized.stat.exists
 
     - name: Store join command as a fact
       set_fact:
         kubeadm_join_command: "{{ kubeadm_join_command.stdout }}"
-      # when: kubeadm_join_command is changed
+      when: not kubeadm_initialized.stat.exists
 
     - name: Configure kubectl for {{ cluster_admin_username }} user
       shell: |

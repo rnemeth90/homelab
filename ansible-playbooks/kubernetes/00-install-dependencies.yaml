@@ -90,10 +90,16 @@
         name: containerd
         state: present
 
-    - name: Configure containerd
-      shell: |
-        mkdir -p /etc/containerd
-        containerd config default | tee "{{ containerd_config_file }}"
+    - name: Ensure /etc/containerd directory exists
+      ansible.builtin.file:
+        path: /etc/containerd
+        state: directory
+        mode: '0755'
+
+    - name: Generate default containerd config (only if missing)
+      ansible.builtin.shell: containerd config default | tee "{{ containerd_config_file }}"
+      args:
+        creates: "{{ containerd_config_file }}"
 
     - name: Ensure SystemdCgroup is set to true in containerd config.toml
       ansible.builtin.lineinfile:
@@ -101,16 +107,23 @@
         regexp: '^\s*SystemdCgroup\s*='
         line: '            SystemdCgroup = true'
         backrefs: true
+      notify: Restart containerd
 
-    - name: Restart containerd service
-      systemd:
+    - name: Ensure containerd service is started and enabled
+      ansible.builtin.systemd:
         name: containerd
-        state: restarted
+        state: started
         enabled: yes
 
+    - name: Check if resolv.conf has already been backed up
+      ansible.builtin.stat:
+        path: /etc/resolv.conf.bak
+      register: resolv_conf_backup
+
     - name: Backup resolv.conf
-      shell: |
-        mv /etc/resolv.conf /etc/resolv.conf.bak
+      ansible.builtin.command:
+        cmd: mv /etc/resolv.conf /etc/resolv.conf.bak
+      when: not resolv_conf_backup.stat.exists
 
     - name: Set DNS servers
       blockinfile:
@@ -122,3 +135,9 @@
           nameserver {{ dns }}
           {% endfor %}
         marker: "# ANSIBLE MANAGED BLOCK - DO NOT EDIT"
+
+  handlers:
+    - name: Restart containerd
+      ansible.builtin.systemd:
+        name: containerd
+        state: restarted

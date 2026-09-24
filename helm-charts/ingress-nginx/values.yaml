@@ -1,0 +1,5 @@
+ingress-nginx:
+  controller:
+    service:
+      # MetalLB hands out an external IP for this LoadBalancer service.
+      type: LoadBalancer

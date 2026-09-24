@@ -48,3 +48,14 @@
       debug:
         msg: "ArgoCD Admin Password: {{ argocd_password.stdout }}"
 
+    # From here on, ArgoCD takes over: this ApplicationSet auto-discovers
+    # every helm chart in helm-charts/ (metallb, ingress-nginx, cert-manager,
+    # metrics-server, and all app charts) and keeps them in sync. No other
+    # container workloads should be deployed via ansible after this point.
+    - name: Bootstrap the ArgoCD ApplicationSet for GitOps-managed helm charts
+      environment:
+        KUBECONFIG: "/etc/kubernetes/admin.conf"
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('file', playbook_dir + '/../../helm-charts/argocd/applicationset.yaml') | from_yaml }}"
+

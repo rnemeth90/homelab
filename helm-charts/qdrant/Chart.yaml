@@ -1,0 +1,10 @@
+apiVersion: v2
+name: qdrant
+description: Wrapper chart for Qdrant, pinning our ingress/TLS configuration
+type: application
+version: 0.1.0
+appVersion: "1.19.1"
+dependencies:
+  - name: qdrant
+    version: "*"
+    repository: https://qdrant.github.io/qdrant-helm

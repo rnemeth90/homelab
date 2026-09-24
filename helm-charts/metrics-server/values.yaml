@@ -1,0 +1,6 @@
+metrics-server:
+  # Bare-metal kubeadm nodes generally don't have kubelet serving certs
+  # signed by a CA the API server trusts, so metrics-server needs this to
+  # avoid "x509: cannot validate certificate" errors against the kubelet API.
+  args:
+    - --kubelet-insecure-tls
