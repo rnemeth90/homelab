@@ -1,0 +1,51 @@
+#!/bin/sh
+#
+# Dynamic MOTD: cluster node status summary.
+# Deployed by ansible-playbooks/kubernetes/10-configure-motd.yaml
+
+HOSTNAME=$(hostname)
+ROLE="{{ 'control-plane' if 'masters' in group_names else 'worker' }}"
+IP=$(hostname -I | awk '{print $1}')
+OS=$(. /etc/os-release && echo "$PRETTY_NAME")
+KERNEL=$(uname -r)
+UPTIME=$(uptime -p)
+LOAD=$(cut -d' ' -f1-3 /proc/loadavg)
+MEM=$(free -h | awk '/^Mem:/ {print $3" / "$2}')
+DISK=$(df -h / | awk 'NR==2 {print $3" / "$2" ("$5" used)"}')
+
+if swapon --show | grep -q .; then
+  SWAP="ACTIVE (unexpected - should be disabled)"
+else
+  SWAP="disabled"
+fi
+
+# `systemctl is-active` always prints a status word to stdout even when it
+# exits non-zero (inactive/failed/unknown all count as "failure"), so a
+# `|| echo` fallback would wrongly append a second line instead of replacing
+# the output.
+kubelet_status=$(systemctl is-active kubelet 2>/dev/null)
+containerd_status=$(systemctl is-active containerd 2>/dev/null)
+fail2ban_status=$(systemctl is-active fail2ban 2>/dev/null)
+KUBELET_VERSION=$(kubelet --version 2>/dev/null | awk '{print $2}')
+[ -z "$KUBELET_VERSION" ] && KUBELET_VERSION="unknown"
+
+cat <<EOF
+
+==========================================================================
+ ${HOSTNAME}  --  Kubernetes ${ROLE}
+==========================================================================
+ OS:        ${OS}
+ Kernel:    ${KERNEL}
+ IP:        ${IP}
+ Uptime:    ${UPTIME}
+ Load avg:  ${LOAD}
+ Memory:    ${MEM}
+ Disk (/):  ${DISK}
+ Swap:      ${SWAP}
+--------------------------------------------------------------------------
+ kubelet:     ${kubelet_status} (${KUBELET_VERSION})
+ containerd:  ${containerd_status}
+ fail2ban:    ${fail2ban_status}
+==========================================================================
+
+EOF

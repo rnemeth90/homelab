@@ -1,0 +1,10 @@
+/var/log/containers/*.log /var/log/pods/*/*.log {
+    daily
+    rotate {{ container_log_rotate_count }}
+    maxsize {{ container_log_rotate_size }}
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+}

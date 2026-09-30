@@ -1,0 +1,34 @@
+- name: Configure fail2ban on Kubernetes nodes
+  hosts: kubernetes
+  become: yes
+  tasks:
+    - name: Ensure fail2ban is installed
+      apt:
+        name: fail2ban
+        state: present
+
+    - name: Deploy fail2ban jail.local
+      template:
+        src: templates/jail.local.j2
+        dest: /etc/fail2ban/jail.local
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart fail2ban
+
+    - name: Ensure fail2ban service is started and enabled
+      systemd:
+        name: fail2ban
+        state: started
+        enabled: yes
+      # In --check mode the apt install above is only simulated, so on a
+      # host where fail2ban isn't already present this module can't find
+      # the unit yet. Only tolerate that under --check; a real run still
+      # fails loudly if something's actually wrong.
+      ignore_errors: "{{ ansible_check_mode }}"
+
+  handlers:
+    - name: Restart fail2ban
+      systemd:
+        name: fail2ban
+        state: restarted

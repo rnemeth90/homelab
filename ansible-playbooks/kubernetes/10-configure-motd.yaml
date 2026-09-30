@@ -1,0 +1,19 @@
+- name: Configure MOTD on Kubernetes nodes
+  hosts: kubernetes
+  become: yes
+  tasks:
+    - name: Deploy dynamic MOTD script
+      template:
+        src: templates/50-kubernetes-motd.j2
+        dest: /etc/update-motd.d/50-kubernetes-motd
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Clear static /etc/motd so it doesn't duplicate the dynamic banner
+      copy:
+        content: ""
+        dest: /etc/motd
+        owner: root
+        group: root
+        mode: '0644'

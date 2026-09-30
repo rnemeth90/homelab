@@ -2,19 +2,8 @@
 #
 # migrate-to-argocd.sh
 #
-# One-time migration runbook for handing metrics-server, metallb,
-# ingress-nginx, and cert-manager over to ArgoCD (see
-# helm-charts/argocd/applicationset.yaml). Run this ONCE, from a machine
-# with kubectl access to the cluster, AFTER ansible-playbooks/kubernetes/10-argocd.yaml
-# has been applied and ArgoCD is up and running.
-#
-# cert-manager and ingress-nginx were already installed via Helm under the
-# same release name/namespace ArgoCD will use, so they're adopted in place.
-# metrics-server and metallb were installed via raw manifests in different
-# namespaces than ArgoCD will use, so their old copies are deleted first to
-# avoid running duplicate controllers (metrics.k8s.io APIService is a
-# cluster-wide singleton; running two MetalLB speakers simultaneously risks
-# duplicate/ conflicting LoadBalancer IP announcements).
+# migration script for moving metrics-server, metallb,
+# ingress-nginx, and cert-manager over to argo
 #
 # Usage:
 #   ./scripts/migrate-to-argocd.sh                 # interactive, full migration
@@ -24,7 +13,6 @@
 #                                                    # existing metallb install alone
 #   ./scripts/migrate-to-argocd.sh --dry-run        # print what would run, do nothing
 #
-# Requires: kubectl (with a working KUBECONFIG or /etc/kubernetes/admin.conf)
 
 set -euo pipefail
 

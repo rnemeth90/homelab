@@ -1,0 +1,51 @@
+- name: Configure logrotate on Kubernetes nodes
+  hosts: kubernetes
+  become: yes
+  tasks:
+    - name: Ensure logrotate is installed
+      apt:
+        name: logrotate
+        state: present
+
+    - name: Ensure cron is installed (drives logrotate's daily run)
+      apt:
+        name: cron
+        state: present
+
+    - name: Ensure cron service is started and enabled
+      systemd:
+        name: cron
+        state: started
+        enabled: yes
+      # Same --check-mode caveat as fail2ban's service task: if cron isn't
+      # already installed, the preceding apt task was only simulated, so
+      # this module can't find the unit yet.
+      ignore_errors: "{{ ansible_check_mode }}"
+
+    - name: Ensure rsyslog is installed (provides default syslog/auth/kern rotation)
+      apt:
+        name: rsyslog
+        state: present
+
+    - name: Deploy logrotate config for container/pod logs
+      template:
+        src: templates/kubernetes-containers.logrotate.j2
+        dest: /etc/logrotate.d/kubernetes-containers
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Deploy logrotate config for the API server audit log
+      template:
+        src: templates/kubernetes-audit.logrotate.j2
+        dest: /etc/logrotate.d/kubernetes-audit
+        owner: root
+        group: root
+        mode: '0644'
+      when: "'masters' in group_names"
+
+    - name: Verify logrotate config syntax
+      command: >-
+        logrotate -d /etc/logrotate.d/kubernetes-containers
+        {{ '/etc/logrotate.d/kubernetes-audit' if 'masters' in group_names else '' }}
+      changed_when: false

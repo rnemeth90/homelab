@@ -22,3 +22,14 @@ cluster_admin_username: rtn
 custom_dns_servers:
 - 192.168.86.5
 
+kubernetes_audit_log_path: /var/log/kubernetes/audit.log
+container_log_rotate_size: 100M
+container_log_rotate_count: 5
+
+fail2ban_ignore_cidr: 192.168.86.0/24
+fail2ban_bantime: 1h
+fail2ban_findtime: 10m
+fail2ban_maxretry: 5
+
+dphys_swapfile_path: /var/swap
+

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: logstash
+description: Wrapper chart for logstash
+type: application
+version: 0.1.0
+dependencies:
+  - name: argocd
+    version: "*"
+    repository: https://helm.elastic.co

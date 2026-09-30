@@ -1,0 +1,29 @@
+- name: Ensure swap is disabled on all Kubernetes nodes
+  hosts: kubernetes
+  become: yes
+  tasks:
+    - name: Gather service facts
+      service_facts:
+
+    - name: Purge dphys-swapfile (Raspberry Pi OS swap manager, recreates swap on every boot)
+      apt:
+        name: dphys-swapfile
+        state: absent
+        purge: yes
+      when: "'dphys-swapfile.service' in ansible_facts.services"
+
+    - name: Remove leftover dphys-swapfile swapfile
+      file:
+        path: "{{ dphys_swapfile_path }}"
+        state: absent
+
+    - name: Check if swap is active
+      command: swapon --show
+      register: swap_check
+      changed_when: false
+
+    - name: Disable swap
+      shell: |
+        swapoff -a
+        sed -i '/\sswap\s/d' /etc/fstab
+      when: swap_check.stdout != ""
