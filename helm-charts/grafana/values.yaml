@@ -34,7 +34,7 @@ grafana:
         token: ''
   ingress:
     enabled: true
-    ingressClassName: nginx
+    ingressClassName: cilium
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
     hosts:

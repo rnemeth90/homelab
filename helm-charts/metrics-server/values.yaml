@@ -1,3 +1,5 @@
+namespaceOverride: "metrics-server"
+
 metrics-server:
   # Bare-metal kubeadm nodes generally don't have kubelet serving certs
   # signed by a CA the API server trusts, so metrics-server needs this to

@@ -10,7 +10,7 @@ homepage:
         gethomepage.dev/description: "Dashboard for all cluster apps"
         gethomepage.dev/group: "Cluster"
         gethomepage.dev/icon: "homepage.png"
-      ingressClassName: nginx
+      ingressClassName: cilium
       hosts:
         - host: &host homepage.geekyryan.lan
           paths:

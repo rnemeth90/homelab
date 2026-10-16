@@ -1,0 +1,8 @@
+apiVersion: "cilium.io/v2"
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: "load-balancer-ipam-00"
+spec:
+  blocks:
+  - start: "192.168.86.40"
+    stop: "192.168.86.50"

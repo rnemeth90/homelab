@@ -25,7 +25,7 @@ resources:
 
 ingress:
   enabled: true
-  ingressClassName: nginx
+  ingressClassName: cilium
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
   host: glances.geekyryan.lan
