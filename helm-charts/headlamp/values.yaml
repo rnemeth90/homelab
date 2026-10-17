@@ -8,7 +8,7 @@ headlamp:
       - host: headlamp.geekyryan.lan
         paths:
           - path: /
-            type: ImplementationSpecific
+            type: Prefix
     tls:
       - secretName: headlamp-tls
         hosts:

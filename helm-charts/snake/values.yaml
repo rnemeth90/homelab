@@ -26,6 +26,6 @@ ingress:
     cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
   host: snake.geekyryan.lan
   path: /
-  pathType: ImplementationSpecific
+  pathType: Prefix
   tls:
     secretName: snake-tls
