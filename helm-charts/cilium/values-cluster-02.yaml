@@ -1,0 +1,19 @@
+cluster:
+  id: 2
+  name: kind-kind-cluster-02
+ipam:
+  operator:
+    clusterPoolIPv4PodCIDRList: ["10.20.0.0/16"]
+    clusterPoolIPv6PodCIDRList: ["fd01::/104"]
+clustermesh:
+  useAPIServer: true
+  config:
+    enabled: true
+  apiserver:
+    service:
+      type: NodePort
+    tls:
+      auto:
+        enabled: true
+        method: cronJob
+        schedule: "0 0 1 */4 *"

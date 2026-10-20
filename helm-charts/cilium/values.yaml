@@ -3,7 +3,7 @@
 
 
 # @schema
-p# type: [null, string]
+# type: [null, string]
 # @schema
 # -- namespaceOverride allows to override the destination namespace for Cilium resources.
 namespaceOverride: ""
@@ -138,11 +138,11 @@ cluster:
   # * It must begin and end with a lower case alphanumeric character;
   # * It may contain lower case alphanumeric characters and dashes between.
   # The "default" name cannot be used if the Cluster ID is different from 0.
-  name: cluster-00
+  name: kind-kind-cluster-00
   # -- (int) Unique ID of the cluster. Must be unique across all connected
   # clusters and in the range of 1 to 255. Only required for Cluster Mesh,
   # may be 0 if Cluster Mesh is not used.
-  id: 2
+  id: 1
 # -- Define serviceAccount names for components.
 # @default -- Component's fully qualified name.
 serviceAccounts:
@@ -972,13 +972,13 @@ identityManagementMode: "agent"
 envoyConfig:
   # -- Enable CiliumEnvoyConfig CRD
   # CiliumEnvoyConfig CRD can also be implicitly enabled by other options.
-  enabled: false
+  enabled: true
   # -- SecretsNamespace is the namespace in which envoy SDS will retrieve secrets from.
   secretsNamespace:
     # -- Create secrets namespace for CiliumEnvoyConfig CRDs.
     create: true
     # -- The name of the secret namespace to which Cilium agents are given read access.
-    name: cilium-secrets
+    name: cilium-envoy-config
   # -- Interval in which an attempt is made to reconcile failed EnvoyConfigs. If the duration is zero, the retry is deactivated.
   retryInterval: 15s
 ingressController:
@@ -1023,7 +1023,7 @@ ingressController:
     # -- Create secrets namespace for Ingress.
     create: true
     # -- Name of Ingress secret namespace.
-    name: cilium-secrets
+    name: cilium-config-secrets
     # -- Enable secret sync, which will make sure all TLS secrets used by Ingress are synced to secretsNamespace.name.
     # If disabled, TLS secrets must be maintained externally.
     sync: true
@@ -1094,7 +1094,7 @@ ingressController:
 gatewayAPI:
   # -- Enable support for Gateway API in cilium
   # This will automatically set enable-envoy-config as well.
-  enabled: false
+  enabled: true
   # -- Enable proxy protocol for all GatewayAPI listeners. Note that _only_ Proxy protocol traffic will be accepted once this is enabled.
   enableProxyProtocol: false
   # @schema
@@ -1127,7 +1127,7 @@ gatewayAPI:
     # -- Create secrets namespace for Gateway API.
     create: true
     # -- Name of Gateway API secret namespace.
-    name: cilium-secrets
+    name: cilium-config-secrets
     # -- Enable secret sync, which will make sure all TLS secrets used by Ingress are synced to secretsNamespace.name.
     # If disabled, TLS secrets must be maintained externally.
     sync: true
@@ -1150,7 +1150,7 @@ gatewayAPI:
 enableXTSocketFallback: true
 encryption:
   # -- Enable transparent network encryption.
-  enabled: false
+  enabled: true
   # -- Encryption method. Can be one of ipsec, wireguard or ztunnel.
   type: ipsec
   # -- Enable encryption for pure node to node traffic.
@@ -1494,9 +1494,9 @@ hubble:
     #
     #   --set hubble.metrics.enabled="{dns:query;ignoreAAAA,drop,tcp,flow,icmp,http}"
     #
-    enabled: ~
+    enabled: ["dns", "drop", "tcp", "flow", "icmp", "http"]
     # -- Enables exporting hubble metrics in OpenMetrics format.
-    enableOpenMetrics: false
+    enableOpenMetrics: true
     # -- Configure the port the hubble metric server listens on.
     port: 9965
     tls:
@@ -1691,7 +1691,7 @@ hubble:
     # -- Enable mutual TLS for listenAddress. Setting this value to false is
     # highly discouraged as the Hubble API provides access to potentially
     # sensitive network flow metadata and is exposed on the host network.
-    enabled: true
+    enabled: false
     # -- Configure automatic TLS certificates generation.
     auto:
       # -- Auto-generate certificates.
@@ -2002,7 +2002,7 @@ hubble:
       level: ~
   ui:
     # -- Whether to enable the Hubble UI.
-    enabled: false
+    enabled: true
     standalone:
       # -- When true, it will allow installing the Hubble UI only, without checking dependencies.
       # It is useful if a cluster already has cilium and Hubble relay installed and you just
@@ -3133,7 +3133,7 @@ tls:
     # -- Create secrets namespace for TLS Interception secrets.
     create: true
     # -- Name of TLS Interception secret namespace.
-    name: cilium-secrets
+    name: cilium-config-secrets
   # -- Configures settings for synchronization of TLS Interception Secrets
   secretSync:
     # @schema
@@ -3699,7 +3699,7 @@ clustermesh:
   # -- Deploy clustermesh-apiserver for clustermesh. This option is typically
   # used with ``clustermesh.config.enabled=true``. Refer to the
   # ``clustermesh.config.enabled=true``documentation for more information.
-  useAPIServer: false
+  useAPIServer: true
   # -- The maximum number of clusters to support in a ClusterMesh. This value
   # cannot be changed on running clusters, and all clusters in a ClusterMesh
   # must be configured with the same value. Values > 255 will decrease the
@@ -3756,7 +3756,7 @@ clustermesh:
     # - (ConfigMap) clustermesh-remote-users (used to create one etcd user per remote cluster
     #   if clustermesh-apiserver is used and `clustermesh.apiserver.tls.authMode` is not
     #   set to `legacy`)
-    enabled: false
+    enabled: true
     # -- Default dns domain for the Clustermesh API servers
     # This is used in the case cluster addresses are not provided
     # and IPs are used.
@@ -4159,7 +4159,7 @@ clustermesh:
         #                 certificates not provided by the user at installation
         #                 time.
         # - certmanager:  This method use cert-manager to generate & rotate certificates.
-        method: helm
+        method: cronJob
         # -- Generated certificates validity duration in days.
         certValidityDuration: 365
         # -- Schedule for certificates regeneration (regardless of their expiration date).

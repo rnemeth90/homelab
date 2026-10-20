@@ -1,0 +1,23 @@
+apiVersion: cilium.io/v2
+kind: CiliumEgressGatewayPolicy
+metadata:
+  name: egress-gateway-worker
+spec:
+  selectors:
+  - podSelector:
+      matchLabels:
+        egress-gateway: "true"
+        io.kubernetes.pod.namespace: default
+    nodeSelector: # optional, if not specified the policy applies to all nodes
+      matchLabels:
+        node.kubernetes.io/name: kind-cluster-02-worker
+  destinationCIDRs:
+  - "0.0.0.0/0"
+  - "::/0"
+  egressGateway:
+    nodeSelector:
+      matchLabels:
+        node.kubernetes.io/name: kind-cluster-02-worker
+    egressIP: 172.18.0.5
+
+ 
