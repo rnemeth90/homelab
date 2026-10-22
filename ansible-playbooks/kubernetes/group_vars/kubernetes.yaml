@@ -5,6 +5,7 @@ common_packages:
   - software-properties-common
   - chrony
   - firewalld
+  - nfs-common
 
 kubernetes_packages:
   - kubelet=1.32.*

@@ -1,4 +1,6 @@
 qdrant:
+  # The NFS export squashes root, so the init chown is not permitted.
+  updateVolumeFsOwnership: false
   ingress:
     enabled: true
     ingressClassName: cilium
