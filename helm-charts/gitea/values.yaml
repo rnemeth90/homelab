@@ -13,6 +13,12 @@ gitea:
         hosts:
           - *host
 
+  # SQLite and the LevelDB queue allow only one writer on the shared volume,
+  # so the old pod must stop before the new one starts.
+  strategy:
+    type: Recreate
+    rollingUpdate: null
+
   persistence:
     enabled: true
     size: 50Gi
