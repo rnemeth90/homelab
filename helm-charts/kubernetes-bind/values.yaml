@@ -6,7 +6,7 @@ autoscaling:
 image:
   repository: ryannemeth/bind9
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 service:
   type: ClusterIP

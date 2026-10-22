@@ -31,6 +31,8 @@
         - 10250/tcp
         - 10251/tcp
         - 10252/tcp
+        - 10257/tcp
+        - 10259/tcp
         - 6783/udp
         - 6783/tcp
         - 8285/udp
@@ -52,6 +54,38 @@
         - 8472/udp 
         - 30000-32767/tcp
       when: "'workers' in group_names"
+
+    - name: Open ports for Cilium (health, VXLAN, Hubble, metrics)
+      firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled
+        immediate: yes
+      loop:
+        - 4240/tcp        # cilium-health
+        - 8472/udp        # VXLAN overlay
+        - 4244/tcp        # Hubble server
+        - 4245/tcp        # Hubble relay
+        - 9890/tcp        # cilium-agent metrics
+        - 9962/tcp        # cilium-agent prometheus
+        - 9963/tcp        # cilium-operator prometheus
+        - 9964/tcp        # cilium-envoy metrics
+        - 9965/tcp        # Hubble metrics
+
+    - name: Allow ESP (IP protocol 50) for Cilium IPsec encryption
+      firewalld:
+        rich_rule: rule protocol value="esp" accept
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - name: Trust the Cilium pod CIDR (pod-to-host and forwarded pod traffic)
+      firewalld:
+        source: "{{ cilium_pod_cidr }}"
+        zone: trusted
+        permanent: yes
+        state: enabled
+        immediate: yes
 
     - name: Reload firewalld to apply changes
       systemd:

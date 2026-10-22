@@ -18,6 +18,8 @@ kubernetes_repo: "https://pkgs.k8s.io/core:/stable:/v1.32/deb/"
 kubelet_config_file: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 dns_domain_name: "geekyryan.lan"
 pod_network_cidr: 10.32.0.0/16
+# Cilium cluster-pool IPAM range (cluster-pool-ipv4-cidr in cilium-config)
+cilium_pod_cidr: 10.0.0.0/16
 cluster_admin_username: rtn
 
 custom_dns_servers:
