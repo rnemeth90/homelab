@@ -28,7 +28,7 @@ ingress:
   ingressClassName: cilium
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
-  host: glances.geekyryan.lan
+  host: glances.geekyryan.com
   path: /
   pathType: Prefix
   tls:

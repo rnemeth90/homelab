@@ -1,10 +1,19 @@
 cert-manager:
-  installCRDs: true
+  crds:
+    enabled: true
+    keep: true
+  # Internal dnsmasq answers NXDOMAIN for _acme-challenge, so the DNS-01
+  # self-check must use public resolvers.
+  extraArgs:
+    - --dns01-recursive-nameservers-only
+    - --dns01-recursive-nameservers=1.1.1.1:53,8.8.8.8:53
 
 clusterIssuer:
   enabled: true
+  # Also create a letsencrypt-cloudflare-staging issuer for testing.
+  staging: true
   # ACME account email - update to a real address you control.
-  email: "your-email@example.com"
+  email: "ryanthomasnemeth@gmail.com"
   # Must be created manually (not committed to git), e.g.:
   #   kubectl -n cert-manager create secret generic cloudflare-api-token-secret \
   #     --from-literal=api-token=<cloudflare-scoped-api-token>

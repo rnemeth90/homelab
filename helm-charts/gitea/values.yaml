@@ -5,7 +5,7 @@ gitea:
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
     hosts:
-      - host: &host gitea.geekyryan.lan
+      - host: &host gitea.geekyryan.com
         paths:
           - path: /
     tls:

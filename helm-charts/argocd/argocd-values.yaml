@@ -1,0 +1,19 @@
+# Values for the argo/argo-cd release, which is installed by
+# ansible-playbooks/kubernetes/10-argocd.yaml (not managed by the ApplicationSet).
+# Apply manually with:
+#   helm upgrade argocd argo/argo-cd --version 9.2.3 -n argocd -f helm-charts/argocd/argocd-values.yaml
+global:
+  domain: argo.geekyryan.com
+
+configs:
+  params:
+    # TLS terminates at the ingress; argocd-server serves plain HTTP.
+    server.insecure: true
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: cilium
+    tls: true
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod

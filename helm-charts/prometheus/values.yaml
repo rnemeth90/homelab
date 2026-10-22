@@ -6,8 +6,8 @@ prometheus:
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
       hosts:
-        - prometheus.geekyryan.lan
+        - prometheus.geekyryan.com
       tls:
         - secretName: prometheus-tls
           hosts:
-            - prometheus.geekyryan.lan
+            - prometheus.geekyryan.com

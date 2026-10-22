@@ -3,6 +3,9 @@ apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-cloudflare-prod
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   acme:
     email: {{ .Values.clusterIssuer.email | quote }}
@@ -15,4 +18,26 @@ spec:
             apiTokenSecretRef:
               name: {{ .Values.clusterIssuer.secretName }}
               key: api-token
+{{- if .Values.clusterIssuer.staging }}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-cloudflare-staging
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  acme:
+    email: {{ .Values.clusterIssuer.email | quote }}
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-cloudflare-staging
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: {{ .Values.clusterIssuer.secretName }}
+              key: api-token
+{{- end }}
 {{- end }}

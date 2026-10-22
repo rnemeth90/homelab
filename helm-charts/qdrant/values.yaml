@@ -5,7 +5,7 @@ qdrant:
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
     hosts:
-      - host: qdrant.geekyryan.lan
+      - host: qdrant.geekyryan.com
         paths:
           - path: /
             pathType: Prefix
@@ -13,4 +13,4 @@ qdrant:
     tls:
       - secretName: qdrant-tls
         hosts:
-          - qdrant.geekyryan.lan
+          - qdrant.geekyryan.com

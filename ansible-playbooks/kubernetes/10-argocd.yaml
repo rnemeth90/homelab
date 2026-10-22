@@ -27,9 +27,11 @@
       kubernetes.core.helm:
         name: argocd
         chart_ref: argo/argo-cd
+        chart_version: "9.2.3"
         release_namespace: argocd
         create_namespace: true
         state: present
+        values: "{{ lookup('file', playbook_dir + '/../../helm-charts/argocd/argocd-values.yaml') | from_yaml }}"
 
     - name: Wait for ArgoCD server pod to be ready
       environment:

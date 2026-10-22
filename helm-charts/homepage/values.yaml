@@ -12,7 +12,7 @@ homepage:
         gethomepage.dev/icon: "homepage.png"
       ingressClassName: cilium
       hosts:
-        - host: &host homepage.geekyryan.lan
+        - host: &host homepage.geekyryan.com
           paths:
             - path: /
               pathType: Prefix
@@ -27,32 +27,32 @@ homepage:
     services:
       - Monitoring:
           - Grafana:
-              href: https://grafana.geekyryan.lan
+              href: https://grafana.geekyryan.com
               description: Dashboards and metrics
           - Prometheus:
-              href: https://prometheus.geekyryan.lan
+              href: https://prometheus.geekyryan.com
               description: Metrics collection
           - Uptime Kuma:
-              href: https://uptime-kuma.geekyryan.lan
+              href: https://uptime-kuma.geekyryan.com
               description: Uptime and status monitoring
 
       - Cluster:
           - Headlamp:
-              href: https://headlamp.geekyryan.lan
+              href: https://headlamp.geekyryan.com
               description: Kubernetes UI
           - ArgoCD:
-              href: https://argocd.geekyryan.lan
+              href: https://argo.geekyryan.com
               description: GitOps continuous delivery
 
       - Fun:
           - CyberChef:
-              href: https://cyberchef.geekyryan.lan
+              href: https://cyberchef.geekyryan.com
               description: The Cyber Swiss Army Knife
           - Glances:
-              href: https://glances.geekyryan.lan
+              href: https://glances.geekyryan.com
               description: System monitoring
           - Snake:
-              href: https://snake.geekyryan.lan
+              href: https://snake.geekyryan.com
               description: Classic Snake game
 
     widgets: []

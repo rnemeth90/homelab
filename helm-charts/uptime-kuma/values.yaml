@@ -5,14 +5,14 @@ uptime-kuma:
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
     hosts:
-      - host: uptime-kuma.geekyryan.lan
+      - host: uptime-kuma.geekyryan.com
         paths:
           - path: /
             pathType: Prefix
     tls:
       - secretName: uptime-kuma-tls
         hosts:
-          - uptime-kuma.geekyryan.lan
+          - uptime-kuma.geekyryan.com
 
   volume:
     enabled: true

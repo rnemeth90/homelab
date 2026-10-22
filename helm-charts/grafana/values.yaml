@@ -38,8 +38,8 @@ grafana:
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
     hosts:
-      - grafana.geekyryan.lan
+      - grafana.geekyryan.com
     tls:
       - secretName: grafana-tls
         hosts:
-          - grafana.geekyryan.lan
+          - grafana.geekyryan.com
