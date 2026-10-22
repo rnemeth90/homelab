@@ -38,7 +38,7 @@ harbor:
           storageClass: nfs-client
           size: 1Gi
       database:
-        storageClass: nfs-client
+        storageClass: harbor-local
         size: 5Gi
       redis:
         storageClass: nfs-client

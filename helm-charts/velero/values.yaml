@@ -42,6 +42,13 @@ velero:
 
 minio:
   mode: standalone
+  # quay.io/minio/minio is no longer pullable; pgsty maintains a community fork.
+  image:
+    repository: docker.io/pgsty/minio
+    tag: RELEASE.2026-08-04T00-00-00Z
+  mcImage:
+    repository: docker.io/pgsty/mc
+    tag: latest
   replicas: 1
   # Must be created manually (not committed to git), with keys rootUser and rootPassword:
   #   kubectl -n velero create secret generic minio-credentials \

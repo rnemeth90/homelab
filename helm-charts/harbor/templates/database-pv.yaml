@@ -1,0 +1,22 @@
+# Postgres needs a real filesystem (NFS root-squash breaks its ownership checks),
+# so the database lives on worker02's local disk.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: harbor-database-local
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: harbor-local
+  hostPath:
+    path: /var/lib/harbor-database
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values: [worker02]
