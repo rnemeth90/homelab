@@ -1,0 +1,60 @@
+velero:
+  # Velero's S3 target is the MinIO instance below (data on an NFS PVC).
+  initContainers:
+    - name: velero-plugin-for-aws
+      image: velero/velero-plugin-for-aws:v1.13.1
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - mountPath: /target
+          name: plugins
+
+  configuration:
+    backupStorageLocation:
+      - name: default
+        provider: aws
+        bucket: velero
+        default: true
+        config:
+          region: minio
+          s3ForcePathStyle: "true"
+          s3Url: http://velero-minio.velero.svc.cluster.local:9000
+    # No CSI snapshot support on NFS, so back up PVC contents with the node agent.
+    defaultVolumesToFsBackup: true
+
+  snapshotsEnabled: false
+  deployNodeAgent: true
+
+  # Must be created manually (not committed to git):
+  #   kubectl -n velero create secret generic velero-credentials \
+  #     --from-file=cloud=<(printf '[default]\naws_access_key_id=<MINIO_ROOT_USER>\naws_secret_access_key=<MINIO_ROOT_PASSWORD>\n')
+  credentials:
+    useSecret: true
+    existingSecret: velero-credentials
+
+  schedules:
+    daily:
+      schedule: "0 3 * * *"
+      template:
+        ttl: 720h
+        excludedNamespaces:
+          - velero
+          - kube-system
+
+minio:
+  mode: standalone
+  replicas: 1
+  # Must be created manually (not committed to git), with keys rootUser and rootPassword:
+  #   kubectl -n velero create secret generic minio-credentials \
+  #     --from-literal=rootUser=velero --from-literal=rootPassword='<password>'
+  existingSecret: minio-credentials
+  persistence:
+    enabled: true
+    storageClass: nfs-client
+    size: 100Gi
+  resources:
+    requests:
+      memory: 512Mi
+  buckets:
+    - name: velero
+      policy: none
+      purge: false

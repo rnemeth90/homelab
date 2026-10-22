@@ -1,0 +1,49 @@
+harbor:
+  externalURL: https://harbor.geekyryan.com
+
+  expose:
+    type: ingress
+    tls:
+      enabled: true
+      certSource: secret
+      secret:
+        secretName: harbor-tls
+    ingress:
+      className: cilium
+      hosts:
+        core: harbor.geekyryan.com
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
+        ingress.kubernetes.io/proxy-body-size: "0"
+
+  # Must be created manually (not committed to git):
+  #   kubectl -n harbor create secret generic harbor-admin \
+  #     --from-literal=HARBOR_ADMIN_PASSWORD='<password>'
+  #   kubectl -n harbor create secret generic harbor-secret-key \
+  #     --from-literal=secretKey="$(openssl rand -hex 8)"
+  existingSecretAdminPassword: harbor-admin
+  existingSecretSecretKey: harbor-secret-key
+
+  # RWO volumes on NFS: stop the old pod before starting the new one.
+  updateStrategy:
+    type: Recreate
+
+  persistence:
+    persistentVolumeClaim:
+      registry:
+        storageClass: nfs-client
+        size: 50Gi
+      jobservice:
+        jobLog:
+          storageClass: nfs-client
+          size: 1Gi
+      database:
+        storageClass: nfs-client
+        size: 5Gi
+      redis:
+        storageClass: nfs-client
+        size: 1Gi
+
+  # Vulnerability scanner; enable later if the extra resources are wanted.
+  trivy:
+    enabled: false

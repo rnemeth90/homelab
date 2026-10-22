@@ -1,0 +1,23 @@
+actions:
+  enabled: true
+  giteaRootURL: http://gitea-http.gitea.svc.cluster.local:3000
+  # Registration token from Gitea (Site Administration > Actions > Runners > Create new runner).
+  # Must be created manually (not committed to git):
+  #   kubectl -n gitea-actions-runner create secret generic gitea-runner-token \
+  #     --from-literal=token='<registration token>'
+  existingSecret: gitea-runner-token
+  existingSecretKey: token
+
+  statefulset:
+    replicas: 1
+    persistence:
+      size: 5Gi
+    runner:
+      config: |
+        log:
+          level: info
+        cache:
+          enabled: false
+        container:
+          require_docker: true
+          docker_timeout: 300s

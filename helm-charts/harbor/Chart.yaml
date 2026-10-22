@@ -1,0 +1,10 @@
+apiVersion: v2
+name: harbor
+description: Wrapper chart for Harbor registry, pinning our ingress/TLS configuration
+type: application
+version: 0.1.0
+appVersion: "2.15.4"
+dependencies:
+  - name: harbor
+    version: "1.19.4"
+    repository: https://helm.goharbor.io

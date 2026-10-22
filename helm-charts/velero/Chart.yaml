@@ -1,0 +1,13 @@
+apiVersion: v2
+name: velero
+description: Wrapper chart for Velero backups with an in-cluster MinIO target on NFS
+type: application
+version: 0.1.0
+appVersion: "1.18.2"
+dependencies:
+  - name: velero
+    version: "12.2.1"
+    repository: https://vmware-tanzu.github.io/helm-charts
+  - name: minio
+    version: "5.4.0"
+    repository: https://charts.min.io/

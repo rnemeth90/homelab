@@ -1,0 +1,13 @@
+apiVersion: v2
+name: loki
+description: Wrapper chart for Loki (single binary) and Alloy log collection
+type: application
+version: 0.1.0
+appVersion: "3.6.16"
+dependencies:
+  - name: loki
+    version: "7.5.0"
+    repository: https://grafana.github.io/helm-charts
+  - name: alloy
+    version: "1.14.2"
+    repository: https://grafana.github.io/helm-charts

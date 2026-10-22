@@ -1,0 +1,10 @@
+apiVersion: v2
+name: external-dns
+description: Wrapper chart for external-dns, syncing ingress hostnames to Pi-hole
+type: application
+version: 0.1.0
+appVersion: "0.23.0"
+dependencies:
+  - name: external-dns
+    version: "1.23.0"
+    repository: https://kubernetes-sigs.github.io/external-dns/

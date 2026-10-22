@@ -1,0 +1,9 @@
+dependencies:
+- name: velero
+  repository: https://vmware-tanzu.github.io/helm-charts
+  version: 12.2.1
+- name: minio
+  repository: https://charts.min.io/
+  version: 5.4.0
+digest: sha256:49f219a21a09ef8c1ce9d6917c0bdcae3ce2dbaa5659d6fbbac80dab1716dd34
+generated: "2026-10-22T14:30:38.173971-04:00"
