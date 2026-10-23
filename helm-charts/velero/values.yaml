@@ -58,6 +58,12 @@ minio:
     enabled: true
     storageClass: nfs-client
     size: 100Gi
+  # Match the owner of the NFS export on the Synology (admin:users) so MinIO can write.
+  securityContext:
+    enabled: true
+    runAsUser: 1024
+    runAsGroup: 100
+    fsGroup: 100
   resources:
     requests:
       memory: 512Mi
