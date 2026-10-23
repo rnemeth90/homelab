@@ -1,4 +1,10 @@
 grafana:
+  # Created manually (not in git): keys admin-user, admin-password.
+  #   kubectl -n grafana create secret generic grafana-admin --from-literal=admin-user=admin --from-literal=admin-password='<password>'
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
   datasources:
     datasources.yaml:
       apiVersion: 1
