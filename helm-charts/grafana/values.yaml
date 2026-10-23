@@ -2,7 +2,18 @@ grafana:
   datasources:
     datasources.yaml:
       apiVersion: 1
+      # Replaces the Prometheus datasource that was created by hand in the UI.
+      deleteDatasources:
+        - name: Prometheus
+          orgId: 1
       datasources:
+        - name: Prometheus
+          uid: prometheus
+          type: prometheus
+          access: proxy
+          url: http://prometheus-operated.prometheus.svc.cluster.local:9090
+          isDefault: true
+          editable: false
         - name: Loki
           type: loki
           access: proxy
@@ -21,7 +32,28 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/grafana-dashboards-kubernetes
+      - name: 'cilium'
+        orgId: 1
+        folder: 'Cilium'
+        type: file
+        disableDeletion: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/cilium
   dashboards:
+    cilium:
+      cilium-agent:
+        gnetId: 16611
+        revision: 1
+        datasource: Prometheus
+      cilium-operator:
+        gnetId: 16612
+        revision: 1
+        datasource: Prometheus
+      hubble:
+        gnetId: 16613
+        revision: 1
+        datasource: Prometheus
     grafana-dashboards-kubernetes:
       k8s-system-api-server:
         url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-system-api-server.json

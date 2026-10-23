@@ -1,5 +1,24 @@
-prometheus:
-  server:
+kube-prometheus-stack:
+  # CRDs are applied out-of-band with server-side apply (too large for client-side apply):
+  #   helm show crds prometheus-community/kube-prometheus-stack --version 92.11.0 | kubectl apply --server-side --force-conflicts -f -
+  crds:
+    enabled: false
+
+  # Grafana is deployed separately (helm-charts/grafana).
+  grafana:
+    enabled: false
+
+  # Control-plane components bind to localhost on kubeadm / are not in use.
+  kubeEtcd:
+    enabled: false
+  kubeScheduler:
+    enabled: false
+  kubeControllerManager:
+    enabled: false
+  kubeProxy:
+    enabled: false
+
+  prometheus:
     ingress:
       enabled: true
       ingressClassName: cilium
@@ -11,3 +30,30 @@ prometheus:
         - secretName: prometheus-tls
           hosts:
             - prometheus.geekyryan.com
+    prometheusSpec:
+      # Pick up every ServiceMonitor/PodMonitor/PrometheusRule, not just ones labelled for this release.
+      serviceMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelectorNilUsesHelmValues: false
+      probeSelectorNilUsesHelmValues: false
+      ruleSelectorNilUsesHelmValues: false
+      scrapeConfigSelectorNilUsesHelmValues: false
+      retention: 15d
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: nfs-client
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 20Gi
+
+  alertmanager:
+    alertmanagerSpec:
+      storage:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: nfs-client
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 2Gi
