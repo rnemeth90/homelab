@@ -1,6 +1,15 @@
 grafana:
   # Created manually (not in git): keys admin-user, admin-password.
   #   kubectl -n grafana create secret generic grafana-admin --from-literal=admin-user=admin --from-literal=admin-password='<password>'
+  persistence:
+    enabled: true
+    storageClassName: nfs-client
+    size: 5Gi
+  # NFS root-squash makes the root chown init container fail; PVC dirs are already 0777.
+  initChownData:
+    enabled: false
+  deploymentStrategy:
+    type: Recreate
   admin:
     existingSecret: grafana-admin
     userKey: admin-user
