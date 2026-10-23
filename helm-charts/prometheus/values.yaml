@@ -22,6 +22,7 @@ kube-prometheus-stack:
     ingress:
       enabled: true
       ingressClassName: cilium
+      pathType: Prefix
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
       hosts:
