@@ -9,9 +9,10 @@ image:
   pullPolicy: Always
 
 service:
-  type: ClusterIP
+  type: LoadBalancer
   port: 53
   targetPort: 53
+  loadBalancerIP: 192.168.86.46
 
 persistence:
   enabled: false
@@ -31,18 +32,180 @@ config:
       recursion no;
     };
 
+    zone "geekyryan.com" {
+      type primary;
+      file "/etc/bind/geekyryan.com.db";
+    };
+
+    zone "geekyryan.lan" {
+      type primary;
+      file "/etc/bind/geekyryan.lan.db";
+    };
+
+  # Bump the serial when editing a zone. The key is the file name under /etc/bind.
   zoneFiles:
-    examplecomdb: |
-      $TTL    86400
-      @       IN      SOA     ns1.example.com. admin.example.com. (
-                            2024031101
-                            3600
-                            1800
-                            604800
-                            86400 )
-      @       IN      NS      ns1.example.com.
-      ns1     IN      A       10.0.0.1
-      www     IN      A       10.0.0.2
+    geekyryan.com.db: |
+      $TTL 3600
+      @   IN SOA bind.geekyryan.com. admin.geekyryan.com. (
+              2026102401 ; serial
+              3600       ; refresh
+              1800       ; retry
+              604800     ; expire
+              300 )      ; negative cache
+      @   IN NS bind.geekyryan.com.
+      bind IN A 192.168.86.46
+
+      ; Core infrastructure
+      router         IN A 192.168.86.1
+      unifi          IN A 192.168.86.78
+      pihole1        IN A 192.168.86.5
+      pihole2        IN A 192.168.86.19
+      k8s-api        IN A 192.168.86.18
+      controller00   IN A 192.168.86.18
+      controlplane00 IN A 192.168.86.18
+
+      ; Kubernetes nodes
+      worker00 IN A 192.168.86.20
+      worker01 IN A 192.168.86.21
+      worker02 IN A 192.168.86.22
+      worker03 IN A 192.168.86.23
+      worker04 IN A 192.168.86.24
+      worker05 IN A 192.168.86.25
+      worker06 IN A 192.168.86.26
+
+      ; Network switches
+      bm-sw-00 IN A 192.168.86.2
+      bw-sw-01 IN A 192.168.86.3
+
+      ; Access points
+      basement-ap IN A 192.168.86.4
+      upstairs-ap IN A 192.168.86.7
+
+      ; Devices
+      kernel    IN A 192.168.86.74
+      missanp01 IN A 192.168.86.16
+
+      ; Router aliases
+      usg         IN CNAME router
+      usg-prod-4  IN CNAME router
+      firewall    IN CNAME router
+
+      ; Kubernetes node aliases
+      node0 IN CNAME worker00
+      node1 IN CNAME worker01
+      node2 IN CNAME worker02
+      node3 IN CNAME worker03
+      node4 IN CNAME worker04
+      node5 IN CNAME worker05
+      node6 IN CNAME worker06
+
+      ; Controller aliases
+      cp      IN CNAME controller00
+      control IN CNAME controller00
+
+      ; Sites (cilium ingress)
+      prometheus IN A 192.168.86.45
+      codecache  IN A 192.168.86.45
+      gitea      IN A 192.168.86.45
+      grafana    IN A 192.168.86.45
+      headlamp   IN A 192.168.86.45
+      cyberchef  IN A 192.168.86.45
+      glances    IN A 192.168.86.45
+      homepage   IN A 192.168.86.45
+      snake      IN A 192.168.86.45
+      uptime-kuma IN A 192.168.86.45
+      klances    IN A 192.168.86.45
+      qdrant     IN A 192.168.86.45
+      argo       IN A 192.168.86.45
+      hubble     IN A 192.168.86.45
+      harbor     IN A 192.168.86.45
+
+    geekyryan.lan.db: |
+      $TTL 3600
+      @   IN SOA bind.geekyryan.lan. admin.geekyryan.lan. (
+              2026102401 ; serial
+              3600       ; refresh
+              1800       ; retry
+              604800     ; expire
+              300 )      ; negative cache
+      @   IN NS bind.geekyryan.lan.
+      bind IN A 192.168.86.46
+
+      ; Core infrastructure
+      router       IN A 192.168.86.1
+      unifi        IN A 192.168.86.78
+      pihole1      IN A 192.168.86.5
+      pihole2      IN A 192.168.86.19
+      k8s-api      IN A 192.168.86.18
+      controller00 IN A 192.168.86.18
+
+      ; Kubernetes nodes
+      worker00 IN A 192.168.86.20
+      worker01 IN A 192.168.86.21
+      worker02 IN A 192.168.86.22
+      worker03 IN A 192.168.86.23
+      worker04 IN A 192.168.86.24
+      worker05 IN A 192.168.86.25
+      worker06 IN A 192.168.86.26
+
+      ; Network switches
+      bm-sw-00 IN A 192.168.86.2
+      bw-sw-01 IN A 192.168.86.3
+
+      ; Access points
+      basement-ap IN A 192.168.86.4
+      upstairs-ap IN A 192.168.86.7
+
+      ; Devices
+      kernel    IN A 192.168.86.74
+      missanp01 IN A 192.168.86.16
+
+      ; Router aliases
+      usg        IN CNAME router
+      usg-prod-4 IN CNAME router
+      firewall   IN CNAME router
+
+      ; Kubernetes node aliases
+      node0 IN CNAME worker00
+      node1 IN CNAME worker01
+      node2 IN CNAME worker02
+      node3 IN CNAME worker03
+      node4 IN CNAME worker04
+      node5 IN CNAME worker05
+      node6 IN CNAME worker06
+
+      ; Controller aliases
+      cp      IN CNAME controller00
+      control IN CNAME controller00
+
+      ; Switch aliases
+      bw-sw-00 IN CNAME bm-sw-00
+
+      ; DNS server aliases
+      dns1          IN CNAME pihole1
+      ns1           IN CNAME pihole1
+      pihole01      IN CNAME pihole1
+      primary-dns   IN CNAME pihole1
+      dns2          IN CNAME pihole2
+      ns2           IN CNAME pihole2
+      pihole02      IN CNAME pihole2
+      secondary-dns IN CNAME pihole2
+
+      ; Other aliases
+      api IN CNAME k8s-api
+
+      ; Sites (cilium ingress)
+      prometheus IN A 192.168.86.45
+      codecache  IN A 192.168.86.45
+      gitea      IN A 192.168.86.45
+      grafana    IN A 192.168.86.45
+      headlamp   IN A 192.168.86.45
+      cyberchef  IN A 192.168.86.45
+      glances    IN A 192.168.86.45
+      homepage   IN A 192.168.86.45
+      snake      IN A 192.168.86.45
+      uptime-kuma IN A 192.168.86.45
+      klances    IN A 192.168.86.45
 
 ingress:
   enabled: false

@@ -4,12 +4,20 @@ metadata:
   name: {{ include "bind9.fullname" . }}
   labels:
     {{- include "bind9.labels" . | nindent 4 }}
+  {{- if .Values.service.loadBalancerIP }}
+  annotations:
+    lbipam.cilium.io/ips: {{ .Values.service.loadBalancerIP | quote }}
+  {{- end }}
 spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: http
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: UDP
+      name: dns-udp
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
       protocol: TCP
-      name: http
+      name: dns-tcp
   selector:
-    {{- include "bind9.selectorLabels" . | nindent 4 }}
+    app: bind9

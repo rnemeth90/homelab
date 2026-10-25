@@ -11,9 +11,15 @@ spec:
       app: bind9
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
         app: bind9
     spec:
+      securityContext:
+        sysctls:
+        - name: net.ipv4.ip_unprivileged_port_start
+          value: "0"
       containers:
       - name: bind9
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
