@@ -1,0 +1,30 @@
+image:
+  repository: ghcr.io/storax/kubedoom
+  tag: "0.6.0"
+  pullPolicy: IfNotPresent
+
+# The image is amd64 only.
+nodeSelector:
+  kubernetes.io/arch: amd64
+
+# Kubedoom can only delete pods in this namespace (enforced by a namespaced
+# Role, not just the NAMESPACE env var), so the real workloads are safe.
+arena:
+  namespace: doom-arena
+  # Number of monster pods. Deleting one lets its Deployment respawn it.
+  monsters: 8
+  image: registry.k8s.io/pause:3.10.1
+
+# VNC (password: idbehold). Connect a VNC viewer to <ip>:5900.
+service:
+  type: LoadBalancer
+  loadBalancerIP: 192.168.86.47
+  port: 5900
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi

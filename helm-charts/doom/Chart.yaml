@@ -1,0 +1,6 @@
+apiVersion: v2
+name: doom
+description: A Helm chart for deploying browser-based DOOM (js-dos, shareware episode 1)
+type: application
+version: 0.1.0
+appVersion: "latest"

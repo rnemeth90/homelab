@@ -1,0 +1,35 @@
+replicaCount: 1
+
+image:
+  repository: marcelomusza/mulzatech-doom
+  tag: latest
+  pullPolicy: Always
+
+containerPort: 80
+
+# The image is amd64 only.
+nodeSelector:
+  kubernetes.io/arch: amd64
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  requests:
+    cpu: 25m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+ingress:
+  enabled: true
+  ingressClassName: cilium
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
+  host: doom.geekyryan.com
+  path: /
+  pathType: Prefix
+  tls:
+    secretName: doom-tls
