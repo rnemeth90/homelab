@@ -1,0 +1,201 @@
+# Converts a single-control-plane kubeadm cluster to HA and joins extra control planes.
+#
+# Prereqs:
+#   * Inventory: `masters` holds the existing control plane first, then the new nodes.
+#     New nodes must also be in `kubernetes` and have had 00, 01, 02 applied
+#     (NOT 03, which runs `kubeadm init`).
+#   * Use 3 control planes in total. Two stacked etcd members tolerate no failures.
+#   * kube_api_vip must be a free address on the node subnet, outside DHCP and LB pools.
+#
+# Run: ansible-playbook -i <inventory> 06-ha-control-plane.yaml
+# Tags: vip, endpoint, join, workers
+
+# ---- 1. VIP + controlPlaneEndpoint on the existing control plane ----------
+- name: Add kube-vip and controlPlaneEndpoint on the first control plane
+  hosts: masters[0]
+  become: yes
+  tags: [vip, endpoint]
+  vars:
+    kubeconfig: /etc/kubernetes/admin.conf
+    kubeadm_cfg: /tmp/kubeadm-ha-config.yaml
+  tasks:
+    - name: Pull kube-vip image
+      command: ctr -n k8s.io image pull ghcr.io/kube-vip/kube-vip:{{ kube_vip_version }}
+      changed_when: false
+      tags: vip
+
+    - name: Generate kube-vip static pod manifest
+      shell: >
+        ctr -n k8s.io run --rm --net-host ghcr.io/kube-vip/kube-vip:{{ kube_vip_version }} kube-vip-gen
+        /kube-vip manifest pod
+        --interface {{ kube_vip_interface | default(ansible_default_ipv4.interface) }}
+        --address {{ kube_api_vip }}
+        --controlplane --arp --leaderElection
+        > /etc/kubernetes/manifests/kube-vip.yaml
+      args:
+        creates: /etc/kubernetes/manifests/kube-vip.yaml
+      tags: vip
+
+    - name: Wait for the VIP to answer on 6443
+      wait_for:
+        host: "{{ kube_api_vip }}"
+        port: 6443
+        timeout: 120
+      tags: vip
+
+    - name: Read current ClusterConfiguration
+      command: kubectl --kubeconfig {{ kubeconfig }} -n kube-system get cm kubeadm-config -o jsonpath='{.data.ClusterConfiguration}'
+      register: cluster_cfg_raw
+      changed_when: false
+      tags: endpoint
+
+    - name: Build updated ClusterConfiguration
+      set_fact:
+        cluster_cfg: >-
+          {{ cluster_cfg_raw.stdout | from_yaml
+             | combine({'controlPlaneEndpoint': kube_api_vip ~ ':6443'})
+             | combine({'apiServer': ((cluster_cfg_raw.stdout | from_yaml).apiServer | default({}))
+                        | combine({'certSANs': kube_api_cert_sans}) }) }}
+      tags: endpoint
+
+    - name: Write ClusterConfiguration
+      copy:
+        content: "{{ cluster_cfg | to_nice_yaml }}"
+        dest: "{{ kubeadm_cfg }}"
+        mode: "0600"
+      tags: endpoint
+
+    - name: Upload ClusterConfiguration to the cluster
+      command: kubeadm init phase upload-config kubeadm --config {{ kubeadm_cfg }}
+      tags: endpoint
+
+    - name: Back up and remove the API server cert so it is reissued with the new SANs
+      shell: |
+        mkdir -p /root/pki-backup
+        cp -a /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver.key /root/pki-backup/
+        rm -f /etc/kubernetes/pki/apiserver.crt /etc/kubernetes/pki/apiserver.key
+        kubeadm init phase certs apiserver --config {{ kubeadm_cfg }}
+      args:
+        creates: /root/pki-backup/apiserver.crt
+      register: cert_reissued
+      tags: endpoint
+
+    - name: Restart the API server static pod to load the new cert
+      shell: |
+        mv /etc/kubernetes/manifests/kube-apiserver.yaml /tmp/
+        sleep 20
+        mv /tmp/kube-apiserver.yaml /etc/kubernetes/manifests/
+      when: cert_reissued is changed
+      tags: endpoint
+
+    - name: Wait for the API server via the VIP
+      command: kubectl --kubeconfig {{ kubeconfig }} --server https://{{ kube_api_vip }}:6443 get --raw /readyz
+      register: readyz
+      until: readyz.rc == 0
+      retries: 30
+      delay: 5
+      changed_when: false
+      tags: endpoint
+
+    - name: Point cluster-info (used by `kubeadm join`) at the VIP
+      shell: |
+        kubectl --kubeconfig {{ kubeconfig }} -n kube-public get cm cluster-info -o json \
+        | python3 -c "import sys,json,re; d=json.load(sys.stdin); d['data']['kubeconfig']=re.sub(r'server: .*', 'server: https://{{ kube_api_vip }}:6443', d['data']['kubeconfig']); print(json.dumps(d))" \
+        | kubectl --kubeconfig {{ kubeconfig }} apply -f -
+      tags: endpoint
+
+    - name: Point the control plane's own kubeconfigs at the VIP
+      replace:
+        path: "/etc/kubernetes/{{ item }}"
+        regexp: 'server: https://.*:6443'
+        replace: "server: https://{{ kube_api_vip }}:6443"
+      loop: [admin.conf, super-admin.conf, controller-manager.conf, scheduler.conf, kubelet.conf]
+      failed_when: false
+      tags: endpoint
+
+    - name: Restart kubelet
+      service:
+        name: kubelet
+        state: restarted
+      tags: endpoint
+
+# ---- 2. Join the additional control planes --------------------------------
+- name: Create join credentials on the first control plane
+  hosts: masters[0]
+  become: yes
+  tags: join
+  tasks:
+    - name: Upload control plane certs and get the certificate key
+      shell: kubeadm init phase upload-certs --upload-certs | tail -1
+      register: cert_key
+      no_log: true
+
+    - name: Create a join token
+      command: kubeadm token create --ttl 1h
+      register: join_token
+
+    - name: Compute the CA cert hash
+      shell: >
+        openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null
+        | openssl dgst -sha256 -hex | sed 's/^.* //'
+      register: ca_hash
+      changed_when: false
+
+    - name: Share join credentials with the other control planes
+      set_fact:
+        join_cert_key: "{{ cert_key.stdout }}"
+        join_token_value: "{{ join_token.stdout }}"
+        join_ca_hash: "{{ ca_hash.stdout }}"
+      no_log: true
+
+- name: Join additional control planes
+  hosts: masters[1:]
+  become: yes
+  tags: join
+  tasks:
+    - name: Join as a control plane node
+      shell: >
+        kubeadm join {{ kube_api_vip }}:6443
+        --token {{ hostvars[groups['masters'][0]].join_token_value }}
+        --discovery-token-ca-cert-hash sha256:{{ hostvars[groups['masters'][0]].join_ca_hash }}
+        --control-plane
+        --certificate-key {{ hostvars[groups['masters'][0]].join_cert_key }}
+        --ignore-preflight-errors=Swap,Firewalld
+      args:
+        creates: /etc/kubernetes/kubelet.conf
+      no_log: true
+
+    - name: Pull kube-vip image
+      command: ctr -n k8s.io image pull ghcr.io/kube-vip/kube-vip:{{ kube_vip_version }}
+      changed_when: false
+
+    - name: Generate kube-vip static pod manifest
+      shell: >
+        ctr -n k8s.io run --rm --net-host ghcr.io/kube-vip/kube-vip:{{ kube_vip_version }} kube-vip-gen
+        /kube-vip manifest pod
+        --interface {{ kube_vip_interface | default(ansible_default_ipv4.interface) }}
+        --address {{ kube_api_vip }}
+        --controlplane --arp --leaderElection
+        > /etc/kubernetes/manifests/kube-vip.yaml
+      args:
+        creates: /etc/kubernetes/manifests/kube-vip.yaml
+
+# ---- 3. Repoint workers at the VIP ----------------------------------------
+- name: Point workers at the API VIP
+  hosts: workers
+  become: yes
+  tags: workers
+  serial: 1
+  tasks:
+    - name: Update kubelet kubeconfig server
+      replace:
+        path: /etc/kubernetes/kubelet.conf
+        regexp: 'server: https://.*:6443'
+        replace: "server: https://{{ kube_api_vip }}:6443"
+      register: kubelet_conf
+
+    - name: Restart kubelet
+      service:
+        name: kubelet
+        state: restarted
+      when: kubelet_conf is changed

@@ -22,6 +22,14 @@ pod_network_cidr: 10.32.0.0/16
 cilium_pod_cidr: 10.0.0.0/16
 cluster_admin_username: rtn
 
+# HA control plane (06-ha-control-plane.yaml)
+kube_api_vip: 192.168.86.48
+kube_vip_version: v1.3.1
+kube_api_cert_sans:
+  - "{{ kube_api_vip }}"
+  - k8s-api.geekyryan.com
+  - k8s-api.geekyryan.lan
+
 custom_dns_servers:
 - 192.168.86.5
 
