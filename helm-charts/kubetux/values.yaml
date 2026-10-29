@@ -45,8 +45,8 @@ ingress:
       hosts: [kubetux.geekyryan.com]
 
 resources:
-  requests: {cpu: 500m, memory: 512Mi}
-  limits: {cpu: "2", memory: 1Gi}
+  requests: {cpu: "1", memory: 512Mi}
+  limits: {cpu: "4", memory: 1Gi}
 
 # Sandbox of decoy pods the game targets; real workloads are out of scope
 # (the Role/RoleBinding only exist in these namespaces).
