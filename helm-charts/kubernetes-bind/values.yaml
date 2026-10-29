@@ -47,7 +47,7 @@ config:
     geekyryan.com.db: |
       $TTL 3600
       @   IN SOA bind.geekyryan.com. admin.geekyryan.com. (
-              2026102601 ; serial
+              2026102901 ; serial
               3600       ; refresh
               1800       ; retry
               604800     ; expire
@@ -121,11 +121,12 @@ config:
       harbor     IN A 192.168.86.45
       doom       IN A 192.168.86.45
       kubedoom   IN A 192.168.86.47
+      workflows  IN A 192.168.86.45
 
     geekyryan.lan.db: |
       $TTL 3600
       @   IN SOA bind.geekyryan.lan. admin.geekyryan.lan. (
-              2026102601 ; serial
+              2026102901 ; serial
               3600       ; refresh
               1800       ; retry
               604800     ; expire
@@ -210,6 +211,7 @@ config:
       klances    IN A 192.168.86.45
       doom       IN A 192.168.86.45
       kubedoom   IN A 192.168.86.47
+      workflows  IN A 192.168.86.45
 
 ingress:
   enabled: false

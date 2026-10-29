@@ -1,0 +1,21 @@
+argo-workflows:
+  server:
+    # Plain HTTP behind the cilium ingress, which terminates TLS.
+    secure: false
+    # Login with a bearer token: kubectl -n argo-workflows create token argo-workflows-server
+    authModes:
+      - client
+    ingress:
+      enabled: true
+      ingressClassName: cilium
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
+      hosts:
+        - workflows.geekyryan.com
+      paths:
+        - /
+      pathType: Prefix
+      tls:
+        - secretName: argo-workflows-tls
+          hosts:
+            - workflows.geekyryan.com
