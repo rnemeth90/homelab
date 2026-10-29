@@ -44,6 +44,9 @@ ingress:
     - secretName: kubetux-tls
       hosts: [kubetux.geekyryan.com]
 
+# Game resolution; software rendering cost scales with pixel count.
+geometry: 800x500
+
 resources:
   requests: {cpu: "1", memory: 512Mi}
   limits: {cpu: "4", memory: 1Gi}

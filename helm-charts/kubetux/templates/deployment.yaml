@@ -29,6 +29,7 @@ spec:
             - --dry-run={{ .Values.dryRun }}
             - --max-enemies={{ .Values.maxEnemies }}
             - --kill-interval={{ .Values.killInterval }}
+            - --geometry={{ .Values.geometry }}
           env:
             - {name: POD_NAME, valueFrom: {fieldRef: {fieldPath: metadata.name}}}
             - {name: POD_NAMESPACE, valueFrom: {fieldRef: {fieldPath: metadata.namespace}}}
