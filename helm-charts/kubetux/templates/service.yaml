@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kubetux.name" . }}
+  labels: {{- include "kubetux.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector: {{- include "kubetux.selector" . | nindent 4 }}
+  ports:
+    - {name: game, port: {{ .Values.service.gamePort }}, targetPort: game}
+    - {name: scores, port: {{ .Values.service.scoresPort }}, targetPort: scores}

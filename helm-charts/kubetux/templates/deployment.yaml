@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kubetux.name" . }}
+  labels: {{- include "kubetux.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: {{- include "kubetux.selector" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "kubetux.selector" . | nindent 8 }}
+        # Never let the game target itself.
+        {{ .Values.scope.protectLabel }}: "true"
+    spec:
+      serviceAccountName: {{ include "kubetux.name" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: kubetux
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --dry-run={{ .Values.dryRun }}
+            - --max-enemies={{ .Values.maxEnemies }}
+            - --kill-interval={{ .Values.killInterval }}
+          env:
+            - {name: POD_NAME, valueFrom: {fieldRef: {fieldPath: metadata.name}}}
+            - {name: POD_NAMESPACE, valueFrom: {fieldRef: {fieldPath: metadata.namespace}}}
+            - {name: KUBETUX_NAMESPACES, value: {{ join "," .Values.scope.namespaces | quote }}}
+            - {name: KUBETUX_EXCLUDE_NAMESPACES, value: {{ join "," .Values.scope.excludeNamespaces | quote }}}
+            - {name: KUBETUX_SELECTOR, value: {{ .Values.scope.selector | quote }}}
+            - {name: KUBETUX_PROTECT_LABEL, value: {{ .Values.scope.protectLabel | quote }}}
+            {{- if or .Values.vncPassword .Values.existingSecret }}
+            - name: KUBETUX_VNC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kubetux.secretName" . }}
+                  key: vnc-password
+            {{- end }}
+          ports:
+            - {name: game, containerPort: 6080}
+            - {name: scores, containerPort: 8081}
+          readinessProbe:
+            httpGet: {path: /healthz, port: scores}
+          livenessProbe:
+            httpGet: {path: /healthz, port: scores}
+            initialDelaySeconds: 20
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: data, mountPath: /data}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "kubetux.name" . }}-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: tmp
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity: {{- toYaml . | nindent 8 }}
+      {{- end }}

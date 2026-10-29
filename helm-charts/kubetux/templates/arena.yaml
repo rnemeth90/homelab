@@ -1,0 +1,36 @@
+{{- range .Values.scope.namespaces }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ . }}
+---
+{{- end }}
+{{- with .Values.arena }}
+{{- if .enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enemies
+  namespace: {{ .namespace }}
+  labels:
+    app.kubernetes.io/name: enemies
+spec:
+  replicas: {{ .enemies }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: enemies
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: enemies
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: enemy
+          image: {{ .image }}
+          resources:
+            requests:
+              cpu: 1m
+              memory: 4Mi
+{{- end }}
+{{- end }}
