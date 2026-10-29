@@ -1,0 +1,10 @@
+Play the game:    kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "kubetux.name" . }} {{ .Values.service.gamePort }}:{{ .Values.service.gamePort }}
+                  then open http://localhost:{{ .Values.service.gamePort }}/
+Scoreboard:       kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "kubetux.name" . }} {{ .Values.service.scoresPort }}:{{ .Values.service.scoresPort }}  -> /scores
+{{- if .Values.dryRun }}
+
+DRY-RUN is on: stomping enemies will NOT delete pods. Install with --set dryRun=false for real chaos.
+{{- else }}
+
+WARNING: LIVE MODE. Defeating an enemy deletes the real pod.
+{{- end }}

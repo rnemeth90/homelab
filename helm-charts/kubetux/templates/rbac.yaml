@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "kubetux.name" . }}
+  labels: {{- include "kubetux.labels" . | nindent 4 }}
+---
+{{- if .Values.scope.namespaces }}
+{{- range .Values.scope.namespaces }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "kubetux.name" $ }}
+  namespace: {{ . }}
+  labels: {{- include "kubetux.labels" $ | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: {{ include "kubetux.verbs" $ }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "kubetux.name" $ }}
+  namespace: {{ . }}
+  labels: {{- include "kubetux.labels" $ | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "kubetux.name" $ }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "kubetux.name" $ }}
+    namespace: {{ $.Release.Namespace }}
+---
+{{- end }}
+{{- else }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kubetux.name" . }}-{{ .Release.Namespace }}
+  labels: {{- include "kubetux.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: {{ include "kubetux.verbs" . }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "kubetux.name" . }}-{{ .Release.Namespace }}
+  labels: {{- include "kubetux.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "kubetux.name" . }}-{{ .Release.Namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "kubetux.name" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

@@ -1,0 +1,62 @@
+image:
+  repository: harbor.geekyryan.com/library/kubetux
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+# SAFETY: with dryRun=true enemies can be "killed" but no pod is deleted, and
+# the RBAC does not even grant the delete verb.
+dryRun: false
+
+scope:
+  # Empty = whole cluster (ClusterRole). Otherwise only these namespaces (Role per namespace).
+  namespaces: [kubetux-arena]
+  excludeNamespaces: [kube-system, kube-public, kube-node-lease]
+  # Optional label selector, e.g. "chaos=allowed" or "app in (web,api)"
+  selector: ""
+  # Pods labelled <protectLabel>=true are never targeted.
+  protectLabel: kubetux.io/protect
+
+maxEnemies: 25
+killInterval: 1s
+
+# VNC password protecting the game. Strongly recommended: anyone who can reach
+# the game can play it, and in live mode that deletes pods.
+vncPassword: ""
+existingSecret: ""   # secret with key "vnc-password"; overrides vncPassword
+
+persistence:
+  enabled: false     # keep the scoreboard across restarts
+  size: 100Mi
+  storageClass: ""
+
+service:
+  type: ClusterIP
+  gamePort: 6080
+  scoresPort: 8081
+
+ingress:
+  enabled: true
+  className: cilium
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
+  host: kubetux.geekyryan.com
+  tls:
+    - secretName: kubetux-tls
+      hosts: [kubetux.geekyryan.com]
+
+resources:
+  requests: {cpu: 500m, memory: 512Mi}
+  limits: {cpu: "2", memory: 1Gi}
+
+# Sandbox of decoy pods the game targets; real workloads are out of scope
+# (the Role/RoleBinding only exist in these namespaces).
+arena:
+  enabled: true
+  namespace: kubetux-arena
+  enemies: 8
+  image: registry.k8s.io/pause:3.10.1
+
+nodeSelector:
+  kubernetes.io/arch: amd64
+tolerations: []
+affinity: {}
