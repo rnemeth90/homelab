@@ -1,6 +1,6 @@
 image:
   repository: harbor.geekyryan.com/library/kubetux
-  tag: "0.1.2"
+  tag: "0.1.3"
   pullPolicy: IfNotPresent
 
 # SAFETY: with dryRun=true enemies can be "killed" but no pod is deleted, and
