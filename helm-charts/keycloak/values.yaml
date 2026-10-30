@@ -1,0 +1,79 @@
+# Secrets are NOT in git. Create them before the first sync (namespace: keycloak):
+#   keycloak-admin    : username, password          (bootstrap admin)
+#   keycloak-db       : password                    (postgres + keycloak DB user)
+#   keycloak-oidc     : ARGOCD_CLIENT_SECRET, ARGO_WORKFLOWS_CLIENT_SECRET
+# See helm-charts/keycloak/README.md.
+postgres:
+  image: postgres:17-alpine
+  storage: 5Gi
+  database: keycloak
+  username: keycloak
+  existingSecret: keycloak-db
+
+keycloakx:
+  replicas: 1
+  # Served at the root so the issuer is https://keycloak.geekyryan.com/realms/<realm>
+  http:
+    relativePath: "/"
+  # The ingress terminates TLS; Keycloak speaks plain HTTP and trusts forwarded headers.
+  proxy:
+    enabled: true
+    mode: xforwarded
+    http:
+      enabled: true
+  args:
+    - start
+    - --import-realm
+  database:
+    vendor: postgres
+    hostname: keycloak-postgres
+    port: 5432
+    database: keycloak
+    username: keycloak
+    existingSecret: keycloak-db
+    existingSecretKey: password
+  extraEnv: |
+    - name: KC_HOSTNAME
+      value: https://keycloak.geekyryan.com
+    - name: KC_BOOTSTRAP_ADMIN_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-admin
+          key: username
+    - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-admin
+          key: password
+  # Client secrets are substituted into the realm import as ${ARGOCD_CLIENT_SECRET} etc.
+  extraEnvFrom: |
+    - secretRef:
+        name: keycloak-oidc
+  extraVolumes: |
+    - name: realm
+      configMap:
+        name: keycloak-realm
+  extraVolumeMounts: |
+    - name: realm
+      mountPath: /opt/keycloak/data/import
+      readOnly: true
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
+  ingress:
+    enabled: true
+    ingressClassName: cilium
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
+    rules:
+      - host: keycloak.geekyryan.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: keycloak-tls
+        hosts:
+          - keycloak.geekyryan.com
