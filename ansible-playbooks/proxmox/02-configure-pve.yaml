@@ -1,0 +1,34 @@
+- name: Configure Proxmox VE users and storage
+  hosts: proxmox
+  become: true
+  tasks:
+    - name: Create Linux user for PAM realm
+      ansible.builtin.user:
+        name: "{{ proxmox_admin_user }}"
+        shell: /bin/bash
+      when: proxmox_admin_user | length > 0
+
+    - name: Grant PVE administrator role
+      ansible.builtin.shell: |
+        set -e
+        pveum user add {{ proxmox_admin_user }}@pam || true
+        pveum acl modify / --users {{ proxmox_admin_user }}@pam --roles Administrator
+      changed_when: false
+      when: proxmox_admin_user | length > 0
+
+    - name: Check existing storages
+      ansible.builtin.command: pvesm status
+      register: pvesm_status
+      changed_when: false
+      when: proxmox_storages | length > 0
+
+    - name: Add NFS storages
+      ansible.builtin.command: >-
+        pvesm add {{ item.type }} {{ item.name }}
+        --server {{ item.server }} --export {{ item.export }}
+        --content {{ item.content }}
+      loop: "{{ proxmox_storages }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when: item.name not in pvesm_status.stdout
+      changed_when: true

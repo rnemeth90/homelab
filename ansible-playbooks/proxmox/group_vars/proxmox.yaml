@@ -1,0 +1,30 @@
+timezone: America/New_York
+
+proxmox_packages:
+  - vim
+  - htop
+  - curl
+  - chrony
+  - sudo
+  - fail2ban
+  - ifupdown2
+  - libguestfs-tools
+
+# Use the no-subscription repo (set to false if you have a subscription)
+proxmox_use_no_subscription_repo: true
+
+fail2ban_ignore_cidr: 192.168.86.0/24
+fail2ban_bantime: 1h
+fail2ban_findtime: 10m
+fail2ban_maxretry: 5
+
+# Optional: ssh public keys added to root's authorized_keys
+proxmox_authorized_keys: []
+
+# Optional: extra non-root PVE admin user (realm pam). Leave empty to skip.
+proxmox_admin_user: ""
+
+# Optional: NFS/dir storage definitions (pvesm). Example:
+# proxmox_storages:
+#   - { name: nas-iso, type: nfs, server: 192.168.86.20, export: /volume1/iso, content: "iso,vztmpl" }
+proxmox_storages: []

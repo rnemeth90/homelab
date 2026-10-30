@@ -1,0 +1,71 @@
+- name: Base configuration for Proxmox VE hosts
+  hosts: proxmox
+  become: true
+  tasks:
+    - name: Install packages
+      ansible.builtin.apt:
+        name: "{{ proxmox_packages }}"
+        state: present
+        update_cache: true
+
+    - name: Set timezone
+      community.general.timezone:
+        name: "{{ timezone }}"
+
+    - name: Enable and start chrony
+      ansible.builtin.service:
+        name: chrony
+        state: started
+        enabled: true
+
+    - name: Add authorized SSH keys for root
+      ansible.posix.authorized_key:
+        user: root
+        key: "{{ item }}"
+      loop: "{{ proxmox_authorized_keys }}"
+
+    - name: Configure fail2ban
+      ansible.builtin.copy:
+        dest: /etc/fail2ban/jail.local
+        mode: "0644"
+        content: |
+          [DEFAULT]
+          ignoreip = 127.0.0.1/8 {{ fail2ban_ignore_cidr }}
+          bantime = {{ fail2ban_bantime }}
+          findtime = {{ fail2ban_findtime }}
+          maxretry = {{ fail2ban_maxretry }}
+          backend = systemd
+
+          [sshd]
+          enabled = true
+
+          [proxmox]
+          enabled = true
+          port = https,http,8006
+          filter = proxmox
+          backend = systemd
+          maxretry = 3
+      notify: Restart fail2ban
+
+    - name: Add fail2ban filter for the Proxmox web UI
+      ansible.builtin.copy:
+        dest: /etc/fail2ban/filter.d/proxmox.conf
+        mode: "0644"
+        content: |
+          [Definition]
+          failregex = pvedaemon\[.*authentication (failure|error); rhost=<HOST> user=.* msg=.*
+          ignoreregex =
+          journalmatch = _SYSTEMD_UNIT=pvedaemon.service
+      notify: Restart fail2ban
+
+    - name: Enable fail2ban
+      ansible.builtin.service:
+        name: fail2ban
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Restart fail2ban
+      ansible.builtin.service:
+        name: fail2ban
+        state: restarted
