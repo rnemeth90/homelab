@@ -1,0 +1,22 @@
+# Postgres needs a real filesystem (NFS root-squash breaks its ownership checks),
+# so the database lives on worker02's local disk (same approach as harbor).
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: keycloak-postgres-local
+spec:
+  capacity:
+    storage: {{ .Values.postgres.storage }}
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: keycloak-local
+  hostPath:
+    path: /var/lib/keycloak-postgres
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values: [worker02]

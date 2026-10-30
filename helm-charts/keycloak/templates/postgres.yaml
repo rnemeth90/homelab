@@ -24,10 +24,6 @@ spec:
       labels:
         app: keycloak-postgres
     spec:
-      # NFS root-squash blocks the image's chown; run directly as the postgres uid.
-      securityContext:
-        runAsUser: 70
-        runAsGroup: 70
       containers:
         - name: postgres
           image: {{ .Values.postgres.image }}
@@ -63,6 +59,7 @@ spec:
         name: data
       spec:
         accessModes: ["ReadWriteOnce"]
+        storageClassName: keycloak-local
         resources:
           requests:
             storage: {{ .Values.postgres.storage }}
