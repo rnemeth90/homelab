@@ -1,9 +1,23 @@
 argo-workflows:
   server:
+    # Cluster DNS (Pi-hole) can't resolve keycloak.geekyryan.com, so pin it to the ingress IP.
+    hostAliases:
+      - ip: 192.168.86.45
+        hostnames:
+          - keycloak.geekyryan.com
+    sso:
+      enabled: true
+      issuer: https://keycloak.geekyryan.com/realms/homelab
+      # client-id / client-secret come from the manually created argo-server-sso secret.
+      redirectUrl: https://workflows.geekyryan.com/oauth2/callback
+      scopes:
+        - groups
     # Plain HTTP behind the cilium ingress, which terminates TLS.
     secure: false
-    # Login with a bearer token: kubectl -n argo-workflows create token argo-workflows-server
+    # SSO via Keycloak; "client" stays as a break-glass bearer-token login:
+    #   kubectl -n argo-workflows create token argo-workflows-server
     authModes:
+      - sso
       - client
     ingress:
       enabled: true
