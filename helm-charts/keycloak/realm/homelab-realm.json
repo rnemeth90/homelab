@@ -7,13 +7,30 @@
   "loginWithEmailAllowed": true,
   "bruteForceProtected": true,
   "groups": [
-    { "name": "homelab-admins" }
-  ],
-  "clientScopes": [
     {
-      "name": "groups",
+      "name": "homelab-admins"
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "argocd",
+      "name": "Argo CD",
+      "enabled": true,
       "protocol": "openid-connect",
-      "attributes": { "include.in.token.scope": "true" },
+      "publicClient": false,
+      "secret": "${ARGOCD_CLIENT_SECRET}",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "rootUrl": "https://argo.geekyryan.com",
+      "redirectUris": [
+        "https://argo.geekyryan.com/auth/callback"
+      ],
+      "webOrigins": [
+        "https://argo.geekyryan.com"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "https://argo.geekyryan.com/applications"
+      },
       "protocolMappers": [
         {
           "name": "groups",
@@ -28,23 +45,6 @@
           }
         }
       ]
-    }
-  ],
-  "clients": [
-    {
-      "clientId": "argocd",
-      "name": "Argo CD",
-      "enabled": true,
-      "protocol": "openid-connect",
-      "publicClient": false,
-      "secret": "${ARGOCD_CLIENT_SECRET}",
-      "standardFlowEnabled": true,
-      "directAccessGrantsEnabled": false,
-      "rootUrl": "https://argo.geekyryan.com",
-      "redirectUris": ["https://argo.geekyryan.com/auth/callback"],
-      "webOrigins": ["https://argo.geekyryan.com"],
-      "attributes": { "post.logout.redirect.uris": "https://argo.geekyryan.com/applications" },
-      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "email", "groups"]
     },
     {
       "clientId": "argo-workflows",
@@ -56,9 +56,26 @@
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": false,
       "rootUrl": "https://workflows.geekyryan.com",
-      "redirectUris": ["https://workflows.geekyryan.com/oauth2/callback"],
-      "webOrigins": ["https://workflows.geekyryan.com"],
-      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "email", "groups"]
+      "redirectUris": [
+        "https://workflows.geekyryan.com/oauth2/callback"
+      ],
+      "webOrigins": [
+        "https://workflows.geekyryan.com"
+      ],
+      "protocolMappers": [
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "config": {
+            "full.path": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "claim.name": "groups"
+          }
+        }
+      ]
     }
   ]
 }
