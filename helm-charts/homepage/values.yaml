@@ -41,7 +41,7 @@ homepage:
               href: https://headlamp.geekyryan.com
               description: Kubernetes UI
           - ArgoCD:
-              href: https://argocd.geekyryan.com
+              href: https://argo.geekyryan.com
               description: GitOps continuous delivery
 
       - Fun:

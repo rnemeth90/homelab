@@ -21,15 +21,15 @@
       "secret": "${ARGOCD_CLIENT_SECRET}",
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": false,
-      "rootUrl": "https://argocd.geekyryan.com",
+      "rootUrl": "https://argo.geekyryan.com",
       "redirectUris": [
-        "https://argocd.geekyryan.com/auth/callback"
+        "https://argo.geekyryan.com/auth/callback"
       ],
       "webOrigins": [
-        "https://argocd.geekyryan.com"
+        "https://argo.geekyryan.com"
       ],
       "attributes": {
-        "post.logout.redirect.uris": "https://argocd.geekyryan.com/applications"
+        "post.logout.redirect.uris": "https://argo.geekyryan.com/applications"
       },
       "protocolMappers": [
         {

@@ -3,7 +3,7 @@
 # Apply manually with:
 #   helm upgrade argocd argo/argo-cd --version 9.2.3 -n argocd -f helm-charts/argocd/argocd-values.yaml
 global:
-  domain: argocd.geekyryan.com
+  domain: argo.geekyryan.com
   # Cluster DNS (Pi-hole) can't resolve keycloak.geekyryan.com, so pin it to the ingress IP.
   hostAliases:
     - ip: 192.168.86.45
@@ -15,7 +15,7 @@ configs:
     # TLS terminates at the ingress; argocd-server serves plain HTTP.
     server.insecure: true
   cm:
-    url: https://argocd.geekyryan.com
+    url: https://argo.geekyryan.com
     # Keycloak SSO. clientSecret comes from the (manually created) argocd-oidc secret.
     oidc.config: |
       name: Keycloak
