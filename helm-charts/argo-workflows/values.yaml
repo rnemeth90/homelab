@@ -10,8 +10,7 @@ argo-workflows:
       issuer: https://keycloak.geekyryan.com/realms/homelab
       # client-id / client-secret come from the manually created argo-server-sso secret.
       redirectUrl: https://workflows.geekyryan.com/oauth2/callback
-      scopes:
-        - groups
+      # Groups claim comes from a per-client mapper in the realm, so no extra scope is needed.
     # Plain HTTP behind the cilium ingress, which terminates TLS.
     secure: false
     # SSO via Keycloak; "client" stays as a break-glass bearer-token login:
