@@ -1,10 +1,17 @@
-Play the game:    kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "kubetux.name" . }} {{ .Values.service.gamePort }}:{{ .Values.service.gamePort }}
+Play the game ({{ .Values.ui }} mode):
+                  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "kubetux.name" . }} {{ .Values.service.gamePort }}:{{ .Values.service.gamePort }}
                   then open http://localhost:{{ .Values.service.gamePort }}/
 Scoreboard:       kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "kubetux.name" . }} {{ .Values.service.scoresPort }}:{{ .Values.service.scoresPort }}  -> /scores
 {{- if .Values.dryRun }}
 
-DRY-RUN is on: stomping enemies will NOT delete pods. Install with --set dryRun=false for real chaos.
+DRY-RUN is on: stomping enemies will NOT delete pods. For real chaos set dryRun=false
+and protect the game first (see vncPassword / externalAuth in values.yaml).
 {{- else }}
 
 WARNING: LIVE MODE. Defeating an enemy deletes the real pod.
+{{- end }}
+
+{{- if and (eq .Values.ui "web") (or .Values.vncPassword .Values.existingSecret) }}
+
+Note: vncPassword/existingSecret have no effect in web mode.
 {{- end }}

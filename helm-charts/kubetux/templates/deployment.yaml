@@ -1,3 +1,4 @@
+{{- include "kubetux.validate" . }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -23,13 +24,13 @@ spec:
         seccompProfile: {type: RuntimeDefault}
       containers:
         - name: kubetux
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: {{ include "kubetux.image" . | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
+            - --ui={{ .Values.ui }}
             - --dry-run={{ .Values.dryRun }}
             - --max-enemies={{ .Values.maxEnemies }}
             - --kill-interval={{ .Values.killInterval }}
-            - --geometry={{ .Values.geometry }}
           env:
             - {name: POD_NAME, valueFrom: {fieldRef: {fieldPath: metadata.name}}}
             - {name: POD_NAMESPACE, valueFrom: {fieldRef: {fieldPath: metadata.namespace}}}
@@ -37,7 +38,7 @@ spec:
             - {name: KUBETUX_EXCLUDE_NAMESPACES, value: {{ join "," .Values.scope.excludeNamespaces | quote }}}
             - {name: KUBETUX_SELECTOR, value: {{ .Values.scope.selector | quote }}}
             - {name: KUBETUX_PROTECT_LABEL, value: {{ .Values.scope.protectLabel | quote }}}
-            {{- if or .Values.vncPassword .Values.existingSecret }}
+            {{- if and (eq .Values.ui "vnc") (or .Values.vncPassword .Values.existingSecret) }}
             - name: KUBETUX_VNC_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -52,7 +53,7 @@ spec:
           livenessProbe:
             httpGet: {path: /healthz, port: scores}
             initialDelaySeconds: 20
-          resources: {{- toYaml .Values.resources | nindent 12 }}
+          resources: {{- include "kubetux.resources" . | nindent 12 }}
           securityContext:
             allowPrivilegeEscalation: false
             capabilities: {drop: [ALL]}
