@@ -1,0 +1,25 @@
+netbox:
+  # The bundled PostgreSQL and Valkey subcharts stay enabled (chart defaults).
+  # The superuser password and API token are left empty so the chart
+  # generates them into a Secret; retrieve with:
+  #   kubectl -n netbox get secret netbox-superuser -o jsonpath='{.data.password}' | base64 -d
+  allowedHosts:
+    - netbox.geekyryan.com
+
+  ingress:
+    enabled: true
+    className: cilium
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
+    hosts:
+      - host: &host netbox.geekyryan.com
+        paths:
+          - /
+    tls:
+      - secretName: netbox-tls
+        hosts:
+          - *host
+
+  persistence:
+    enabled: true
+    size: 5Gi

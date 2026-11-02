@@ -1,0 +1,10 @@
+apiVersion: v2
+name: netbox
+description: Wrapper chart for NetBox, pinning our ingress/TLS configuration
+type: application
+version: 0.1.0
+appVersion: "4.4"
+dependencies:
+  - name: netbox
+    version: "*"
+    repository: https://charts.netbox.oss.netboxlabs.com/
