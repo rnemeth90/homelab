@@ -1,3 +1,6 @@
+nameOverride: ""
+fullnameOverride: ""
+
 replicaCount: 1
 
 image:
@@ -20,7 +23,7 @@ resources:
     memory: 512Mi
 
 ingress:
-  enabled: true
+  enabled: false
   ingressClassName: cilium
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
@@ -29,3 +32,26 @@ ingress:
   pathType: Prefix
   tls:
     secretName: snake-tls
+
+gateway:
+  enabled: true
+  gatewayClassName: cilium
+  clusterIssuer: letsencrypt-cloudflare-prod
+  annotations: {}
+  listeners:
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: snake.geekyryan.com
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: snake-tls
+      allowedRoutes:
+        namespaces:
+          from: Same
+  route:
+    hostnames:
+      - snake.geekyryan.com
+    path: /
+    pathType: PathPrefix
