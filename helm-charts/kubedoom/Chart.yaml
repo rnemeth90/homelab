@@ -2,5 +2,9 @@ apiVersion: v2
 name: kubedoom
 description: Kubedoom - play DOOM where the monsters are pods in a sandbox namespace
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: "0.6.0"
+dependencies:
+  - name: homelab-common
+    version: 0.1.0
+    repository: file://../_common

@@ -1,18 +1,8 @@
-{{- define "kubetux.name" -}}{{ .Release.Name }}{{- end -}}
-{{- define "kubetux.labels" -}}
-app.kubernetes.io/name: kubetux
-app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end -}}
-{{- define "kubetux.selector" -}}
-app.kubernetes.io/name: kubetux
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end -}}
 {{- define "kubetux.verbs" -}}
 {{- if .Values.dryRun }}["get","list","watch"]{{ else }}["get","list","watch","delete"]{{ end -}}
 {{- end -}}
 {{- define "kubetux.secretName" -}}
-{{- default (printf "%s-vnc" .Release.Name) .Values.existingSecret -}}
+{{- default (printf "%s-vnc" (include "homelab.fullname" .)) .Values.existingSecret -}}
 {{- end -}}
 {{- define "kubetux.image" -}}
 {{- $tag := .Values.image.tag | default (eq .Values.ui "web" | ternary (printf "%s-web" .Chart.AppVersion) .Chart.AppVersion) -}}
@@ -41,4 +31,10 @@ limits: {cpu: "2", memory: 1Gi}
 {{- fail "dryRun=false lets anyone who can reach the game delete pods. Set vncPassword or existingSecret (or externalAuth=true if an auth proxy fronts the game)." -}}
 {{- end -}}
 {{- end -}}
+{{- end -}}
+{{- define "kubetux.rules" -}}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: {{ include "kubetux.verbs" . }}
 {{- end -}}

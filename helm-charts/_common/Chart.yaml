@@ -1,0 +1,5 @@
+apiVersion: v2
+name: homelab-common
+description: Shared resource templates for the homelab charts (library chart; renders nothing on its own)
+type: library # This chart is to be used/imported by other charts
+version: 0.1.0

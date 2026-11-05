@@ -1,0 +1,6 @@
+dependencies:
+- name: homelab-common
+  repository: file://../_common
+  version: 0.1.0
+digest: sha256:099fa3c4c31c661093f5b27cbc18055a72a0a8d2c87a280782f4a66f621a043c
+generated: "2026-11-04T23:40:24.149432-05:00"

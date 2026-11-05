@@ -2,5 +2,9 @@ apiVersion: v2
 name: bind9
 description: A Helm chart for deploying BIND9 DNS server
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: "latest"
+dependencies:
+  - name: homelab-common
+    version: 0.1.0
+    repository: file://../_common

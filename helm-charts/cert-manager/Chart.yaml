@@ -2,9 +2,12 @@ apiVersion: v2
 name: cert-manager
 description: Wrapper chart for cert-manager, including our Let's Encrypt (Cloudflare DNS01) ClusterIssuer
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: "1.16.2"
 dependencies:
   - name: cert-manager
     version: "v1.16.2"
     repository: https://charts.jetstack.io
+  - name: homelab-common
+    version: 0.1.0
+    repository: file://../_common

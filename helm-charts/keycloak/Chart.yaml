@@ -2,9 +2,12 @@ apiVersion: v2
 name: keycloak
 description: Wrapper chart for Keycloak (codecentric keycloakx) with a bundled Postgres and a GitOps realm import
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: "26.8.1"
 dependencies:
   - name: keycloakx
     version: "7.4.0"
     repository: https://codecentric.github.io/helm-charts
+  - name: homelab-common
+    version: 0.1.0
+    repository: file://../_common

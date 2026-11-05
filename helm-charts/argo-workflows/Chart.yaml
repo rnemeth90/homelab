@@ -2,9 +2,12 @@ apiVersion: v2
 name: argo-workflows
 description: Wrapper chart for Argo Workflows, pinning our ingress/TLS configuration
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: "v4.1.6"
 dependencies:
   - name: argo-workflows
     version: "2.0.14"
     repository: https://argoproj.github.io/argo-helm
+  - name: homelab-common
+    version: 0.1.0
+    repository: file://../_common

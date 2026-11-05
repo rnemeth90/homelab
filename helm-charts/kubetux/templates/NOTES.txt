@@ -1,7 +1,7 @@
 Play the game ({{ .Values.ui }} mode):
-                  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "kubetux.name" . }} {{ .Values.service.gamePort }}:{{ .Values.service.gamePort }}
+                  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "homelab.fullname" . }} {{ .Values.service.gamePort }}:{{ .Values.service.gamePort }}
                   then open http://localhost:{{ .Values.service.gamePort }}/
-Scoreboard:       kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "kubetux.name" . }} {{ .Values.service.scoresPort }}:{{ .Values.service.scoresPort }}  -> /scores
+Scoreboard:       kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "homelab.fullname" . }} {{ .Values.service.scoresPort }}:{{ .Values.service.scoresPort }}  -> /scores
 {{- if .Values.dryRun }}
 
 DRY-RUN is on: stomping enemies will NOT delete pods. For real chaos set dryRun=false

@@ -39,3 +39,24 @@ ingress:
 # iteration) to give it visibility into the underlying node instead.
 hostMounts:
   enabled: false
+  securityContext:
+    privileged: true
+  volumeMounts:
+    - name: proc
+      mountPath: /host/proc
+      readOnly: true
+    - name: sys
+      mountPath: /host/sys
+      readOnly: true
+    - name: docker-sock
+      mountPath: /var/run/docker.sock
+  volumes:
+    - name: proc
+      hostPath:
+        path: /proc
+    - name: sys
+      hostPath:
+        path: /sys
+    - name: docker-sock
+      hostPath:
+        path: /var/run/docker.sock

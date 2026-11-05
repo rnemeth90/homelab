@@ -2,5 +2,8 @@ dependencies:
 - name: harbor
   repository: https://helm.goharbor.io
   version: 1.19.4
-digest: sha256:3aa81d0e6c37b63bc4333dd934cb8e40ec35717ddc3f2e7fcd7568b9eccd43e1
-generated: "2026-10-22T14:30:55.640209-04:00"
+- name: homelab-common
+  repository: file://../_common
+  version: 0.1.0
+digest: sha256:e4c41ca3b1f2fddd7589810a46939bbd9f83f251211824c29808d423be0603a8
+generated: "2026-11-04T23:43:13.288589-05:00"

@@ -1,7 +1,1 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: keycloak-realm
-data:
-  homelab-realm.json: |
-{{ .Files.Get "realm/homelab-realm.json" | indent 4 }}
+{{ include "homelab.configmap" (dict "root" . "values" (dict "name" "keycloak-realm" "data" (dict "homelab-realm.json" (.Files.Get "realm/homelab-realm.json")))) }}

@@ -2,5 +2,8 @@ dependencies:
 - name: argo-workflows
   repository: https://argoproj.github.io/argo-helm
   version: 2.0.14
-digest: sha256:01427a150b10246755b5f35bbe999ae07a07880643590212d8630435023b6b8e
-generated: "2026-10-29T16:24:02.3555-04:00"
+- name: homelab-common
+  repository: file://../_common
+  version: 0.1.0
+digest: sha256:f1ef68f4f01b3b40c376585e79ab8fce4e03b875d5a45da9c786fbc83f5e418e
+generated: "2026-11-04T23:42:46.971166-05:00"

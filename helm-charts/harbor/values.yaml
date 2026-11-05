@@ -1,3 +1,15 @@
+# Postgres needs a real filesystem (NFS root-squash breaks its ownership checks),
+# so the database lives on worker02's local disk. Rendered by
+# templates/database-pv.yaml (homelab-common persistentVolume).
+databasePV:
+  name: harbor-database-local
+  size: 5Gi
+  storageClassName: harbor-local
+  hostPath:
+    path: /var/lib/harbor-database
+    type: DirectoryOrCreate
+  node: worker02
+
 harbor:
   externalURL: https://harbor.geekyryan.com
 

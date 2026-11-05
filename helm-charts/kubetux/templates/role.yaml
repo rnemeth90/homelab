@@ -1,0 +1,15 @@
+{{- /* One Role per target namespace, or a ClusterRole when scope.namespaces is empty. */}}
+{{- $rules := (include "kubetux.rules" . | fromYaml).rules }}
+{{- if .Values.scope.namespaces }}
+{{- range .Values.scope.namespaces }}
+---
+{{ include "homelab.role" (dict "root" $ "values" (dict "namespace" . "rules" $rules)) }}
+---
+{{ include "homelab.roleBinding" (dict "root" $ "values" (dict "namespace" .)) }}
+{{- end }}
+{{- else }}
+{{- $name := printf "%s-%s" (include "homelab.fullname" .) .Release.Namespace }}
+{{ include "homelab.clusterRole" (dict "root" . "values" (dict "name" $name "rules" $rules)) }}
+---
+{{ include "homelab.clusterRoleBinding" (dict "root" . "values" (dict "name" $name)) }}
+{{- end }}

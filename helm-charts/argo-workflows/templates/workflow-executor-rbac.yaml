@@ -1,24 +1,20 @@
 # Lets workflow pods in the "argo" namespace report task results.
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: workflow-executor
-  namespace: argo
+{{- define "argo-workflows.executorRole" -}}
+name: workflow-executor
+namespace: argo
 rules:
   - apiGroups: ["argoproj.io"]
     resources: ["workflowtaskresults"]
     verbs: ["create", "patch"]
+{{- end }}
+{{ include "homelab.render" (list . "role" "argo-workflows.executorRole") }}
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: workflow-executor
-  namespace: argo
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: workflow-executor
+{{- define "argo-workflows.executorBinding" -}}
+name: workflow-executor
+namespace: argo
 subjects:
   - kind: ServiceAccount
     name: default
     namespace: argo
+{{- end }}
+{{ include "homelab.render" (list . "roleBinding" "argo-workflows.executorBinding") }}

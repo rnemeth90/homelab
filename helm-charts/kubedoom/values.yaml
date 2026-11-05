@@ -3,6 +3,11 @@ image:
   tag: "0.6.0"
   pullPolicy: IfNotPresent
 
+# Kept from the original manifests: the Deployment selector is immutable, so
+# it can't grow the usual app.kubernetes.io/instance label.
+selectorLabels:
+  app.kubernetes.io/name: kubedoom
+
 # The image is amd64 only.
 nodeSelector:
   kubernetes.io/arch: amd64
