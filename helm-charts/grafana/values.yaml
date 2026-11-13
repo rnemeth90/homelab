@@ -39,23 +39,26 @@ grafana:
     dashboardproviders.yaml:
       apiVersion: 1
       providers:
-      - name: 'grafana-dashboards-kubernetes'
-        orgId: 1
-        folder: 'Kubernetes'
-        type: file
-        disableDeletion: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/grafana-dashboards-kubernetes
-      - name: 'cilium'
-        orgId: 1
-        folder: 'Cilium'
-        type: file
-        disableDeletion: true
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/cilium
+        - name: 'grafana-dashboards-kubernetes'
+          orgId: 1
+          folder: 'Kubernetes'
+          type: file
+          disableDeletion: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/grafana-dashboards-kubernetes
+        - name: 'cilium'
+          orgId: 1
+          folder: 'Cilium'
+          type: file
+          disableDeletion: true
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/cilium
   dashboards:
+    default:
+      argocd:
+        url: https://raw.githubusercontent.com/argoproj/argo-cd/master/examples/dashboard.json
     cilium:
       cilium-agent:
         gnetId: 16611

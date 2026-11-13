@@ -27,7 +27,7 @@ configs:
     policy.default: role:readonly
     policy.csv: |
       g, homelab-admins, role:admin
-    scopes: "[groups]"
+    scopes: '[groups]'
 
 server:
   ingress:
@@ -36,3 +36,10 @@ server:
     tls: true
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-cloudflare-prod
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    additionalLabels:
+      release: kube-prometheus-stack
