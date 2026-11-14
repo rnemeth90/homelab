@@ -12,9 +12,7 @@ mail:
     postfix:
       smtp_tls_security_level: encrypt
   persistence:
-    enabled: true
-    storageClass: nfs-client
-    size: 1Gi
+    enabled: false
   resources:
     requests:
       cpu: 50m
