@@ -2,7 +2,9 @@
 
 This chart installs an internal Postfix relay. It forwards mail through SMTP2GO
 over authenticated TLS; the relay itself is only reachable by pods in the
-`prometheus` namespace.
+`prometheus` namespace. Its mail queue is ephemeral because the lab's NFS
+storage uses root-squash, which prevents Postfix from setting spool ownership.
+Queued messages can be lost if the relay pod is recreated.
 
 Before Argo CD syncs the chart, create the namespace and an SMTP2GO credential
 Secret. Keep the environment file outside the repository and restrict its
