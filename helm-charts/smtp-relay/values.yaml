@@ -1,0 +1,24 @@
+mail:
+  fullnameOverride: smtp-relay
+  existingSecret: smtp-relay-credentials
+  service:
+    type: ClusterIP
+    port: 587
+  config:
+    general:
+      ALLOWED_SENDER_DOMAINS: geekyryan.com
+      RELAYHOST: "[mail.smtp2go.com]:587"
+      LOG_FORMAT: json
+    postfix:
+      smtp_tls_security_level: encrypt
+  persistence:
+    enabled: true
+    storageClass: nfs-client
+    size: 1Gi
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi

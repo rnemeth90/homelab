@@ -1,0 +1,9 @@
+apiVersion: v2
+name: smtp-relay
+description: In-cluster SMTP relay for Kubernetes notifications
+type: application
+version: 0.1.0
+dependencies:
+  - name: mail
+    version: 5.2.1
+    repository: https://bokysan.github.io/docker-postfix/
